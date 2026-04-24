@@ -1,5 +1,8 @@
 // src/screens/auth/PinSetupScreen.js
-// System numeric keyboard drives a hidden input. 4 visible dots show progress.
+// Two modes:
+//   - Default (from Register): enter new PIN, navigate to PinConfirm
+//   - verifyFirst (from Profile): enter CURRENT PIN first, then enter new PIN,
+//     then navigate to PinConfirm with oldPin in params
 
 import React, { useState, useRef, useEffect } from "react";
 import {
@@ -14,6 +17,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import * as SecureStore from "expo-secure-store";
 import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
 import { FontSize } from "../../constants/theme";
@@ -25,36 +29,80 @@ export default function PinSetupScreen({ navigation, route }) {
 
   const returnTo = route?.params?.returnTo;
   const returnParams = route?.params?.returnParams ?? {};
+  const verifyFirst = route?.params?.verifyFirst === true;
 
+  // phase: "verify" (enter current PIN) | "new" (enter new PIN)
+  const [phase, setPhase] = useState(verifyFirst ? "verify" : "new");
+  const [oldPin, setOldPin] = useState("");
   const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
+  const [checking, setChecking] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
     const id = setTimeout(() => inputRef.current?.focus(), 300);
     return () => clearTimeout(id);
-  }, []);
+  }, [phase]);
 
-  const handleChange = (val) => {
+  const handleChange = async (val) => {
+    if (checking) return;
     const digits = val.replace(/\D/g, "").slice(0, 4);
+    setError("");
     setPin(digits);
-    if (digits.length === 4) {
-      Keyboard.dismiss();
-      setTimeout(() => {
-        navigation.navigate("PinConfirm", {
-          pin: digits,
-          returnTo,
-          returnParams,
-        });
+
+    if (digits.length !== 4) return;
+
+    Keyboard.dismiss();
+
+    if (phase === "verify") {
+      setChecking(true);
+      const stored = await SecureStore.getItemAsync("userPin");
+      if (stored && stored === digits) {
+        setOldPin(digits);
         setPin("");
-      }, 140);
+        setPhase("new");
+        setChecking(false);
+      } else {
+        setError(t.wrongPin ?? "Wrong PIN");
+        setTimeout(() => {
+          setPin("");
+          setChecking(false);
+          inputRef.current?.focus();
+        }, 600);
+      }
+      return;
     }
+
+    // phase === "new" — advance to PinConfirm
+    setTimeout(() => {
+      navigation.navigate("PinConfirm", {
+        pin: digits,
+        oldPin: oldPin || undefined,
+        returnTo,
+        returnParams,
+      });
+      setPin("");
+    }, 140);
   };
 
   const s = makeStyles(theme);
 
+  const title =
+    phase === "verify"
+      ? (t.enterCurrentPin ?? "Enter current PIN")
+      : (t.setupTitle ?? "Create a PIN");
+  const body =
+    phase === "verify"
+      ? (t.enterCurrentPinBody ??
+          "Enter your current 4-digit PIN to continue.")
+      : (t.setupBody ?? "Choose a 4-digit PIN to protect your account.");
+
   return (
     <Pressable
-      style={[s.bg, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }]}
+      style={[
+        s.bg,
+        { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 },
+      ]}
       onPress={() => inputRef.current?.focus()}
     >
       <TouchableOpacity
@@ -74,10 +122,8 @@ export default function PinSetupScreen({ navigation, route }) {
         <Text style={[s.wordmark, { color: theme.accent }]}>COACHLY</Text>
       </View>
 
-      <Text style={[s.title, { color: theme.text }]}>{t.setupTitle}</Text>
-      <Text style={[s.subtitle, { color: theme.textSecondary }]}>
-        {t.setupBody}
-      </Text>
+      <Text style={[s.title, { color: theme.text }]}>{title}</Text>
+      <Text style={[s.subtitle, { color: theme.textSecondary }]}>{body}</Text>
 
       <TouchableOpacity
         style={s.dotsRow}
@@ -99,7 +145,10 @@ export default function PinSetupScreen({ navigation, route }) {
         ))}
       </TouchableOpacity>
 
-      {/* Hidden native input — drives the system number pad */}
+      <View style={s.errorRow}>
+        {!!error && <Text style={s.error}>{error}</Text>}
+      </View>
+
       <TextInput
         ref={inputRef}
         value={pin}
@@ -111,6 +160,7 @@ export default function PinSetupScreen({ navigation, route }) {
         caretHidden
         contextMenuHidden
         textContentType="oneTimeCode"
+        editable={!checking}
       />
     </Pressable>
   );
@@ -148,11 +198,13 @@ function makeStyles(theme) {
       paddingVertical: 16,
     },
     dot: { width: 20, height: 20, borderRadius: 10, borderWidth: 2 },
-    hidden: {
-      position: "absolute",
-      width: 1,
-      height: 1,
-      opacity: 0,
+    errorRow: {
+      height: 24,
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 16,
     },
+    error: { color: "#C62828", fontSize: FontSize.sm, fontWeight: "600" },
+    hidden: { position: "absolute", width: 1, height: 1, opacity: 0 },
   });
 }

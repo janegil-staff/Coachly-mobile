@@ -113,9 +113,28 @@ export const authApi = {
     await clearSession();
   },
 
-  updateProfile: async ({ weightKg }) => {
-    const data = await request("PATCH", "/api/auth/me", { weightKg });
+  updateProfile: async (fields) => {
+    // Accepts { gender, age, heightCm, weightKg } — any subset.
+    const data = await request("PATCH", "/api/auth/me", fields);
     return data?.user ?? data;
+  },
+
+  changeEmail: async ({ newEmail, password }) => {
+    const data = await request("PATCH", "/api/auth/change-email", {
+      newEmail,
+      password,
+    });
+    return data?.user ?? data;
+  },
+
+  changePassword: async ({ oldPassword, newPassword }) => {
+    const data = await request("PATCH", "/api/auth/change-password", {
+      oldPassword,
+      newPassword,
+    });
+    // Server rotates tokens — persist the new ones so future requests auth.
+    await saveSession(data);
+    return data;
   },
 
   deleteAccount: async () => {

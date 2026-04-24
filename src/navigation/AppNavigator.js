@@ -75,6 +75,8 @@ function AppStack() {
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="Language" component={LanguageScreen} />
       <Stack.Screen name="PersonalSettings" component={PersonalSettingsScreen} />
+      <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+      <Stack.Screen name="PinConfirm" component={PinConfirmScreen} />
     </Stack.Navigator>
   );
 }

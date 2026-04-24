@@ -1,6 +1,4 @@
 // src/screens/auth/PinConfirmScreen.js
-// Confirm the PIN entered on the previous screen, using system numeric keyboard.
-
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -24,6 +22,7 @@ export default function PinConfirmScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
 
   const originalPin = route?.params?.pin ?? "";
+  const oldPin = route?.params?.oldPin; // forwarded from PinSetup (profile flow)
   const returnTo = route?.params?.returnTo;
   const returnParams = route?.params?.returnParams ?? {};
 
@@ -45,7 +44,11 @@ export default function PinConfirmScreen({ navigation, route }) {
       setTimeout(() => {
         if (digits === originalPin) {
           if (returnTo) {
-            navigation.navigate(returnTo, { ...returnParams, pin: digits });
+            // For profile flow: send { newPin, oldPin }. For register flow: send { pin }
+            const extra = oldPin
+              ? { newPin: digits, oldPin }
+              : { pin: digits };
+            navigation.navigate(returnTo, { ...returnParams, ...extra });
           } else {
             navigation.goBack();
           }
@@ -62,7 +65,10 @@ export default function PinConfirmScreen({ navigation, route }) {
 
   return (
     <Pressable
-      style={[s.bg, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }]}
+      style={[
+        s.bg,
+        { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 },
+      ]}
       onPress={() => inputRef.current?.focus()}
     >
       <TouchableOpacity
@@ -82,9 +88,11 @@ export default function PinConfirmScreen({ navigation, route }) {
         <Text style={[s.wordmark, { color: theme.accent }]}>COACHLY</Text>
       </View>
 
-      <Text style={[s.title, { color: theme.text }]}>{t.confirmTitle}</Text>
+      <Text style={[s.title, { color: theme.text }]}>
+        {t.confirmTitle ?? "Confirm PIN"}
+      </Text>
       <Text style={[s.subtitle, { color: theme.textSecondary }]}>
-        {t.confirmBody}
+        {t.confirmBody ?? "Enter the same PIN again."}
       </Text>
 
       <TouchableOpacity
@@ -166,11 +174,6 @@ function makeStyles(theme) {
       marginTop: 16,
     },
     error: { color: "#C62828", fontSize: FontSize.sm, fontWeight: "600" },
-    hidden: {
-      position: "absolute",
-      width: 1,
-      height: 1,
-      opacity: 0,
-    },
+    hidden: { position: "absolute", width: 1, height: 1, opacity: 0 },
   });
 }
