@@ -1,6 +1,5 @@
 // src/screens/share/ShareScreen.js
-// Generates a 6-digit share code valid for 10 minutes. Coach enters it at
-// the placeholder URL to view last 30 days of logs + stats.
+// 6-digit share code valid for 10 min + 3-tab bottom bar (Code / Questionnaire / Studies).
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
@@ -19,13 +18,20 @@ import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
 import { shareApi } from "../../services/api";
 import { styles, TOTAL_SECONDS, SHARE_DOMAIN } from "./shareStyles";
-import { ArcTimer, BrandBubble } from "./shareComponents";
+import {
+  ArcTimer,
+  BrandBubble,
+  IconCode,
+  IconQuestionnaire,
+  IconStudies,
+} from "./shareComponents";
 
 export default function ShareScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useLang();
   const insets = useSafeAreaInsets();
   const PRIMARY = theme?.accent ?? "#4A7AB5";
+  const MUTED = "#a0b8d0";
 
   const [code, setCode] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(TOTAL_SECONDS);
@@ -83,6 +89,23 @@ export default function ShareScreen({ navigation }) {
     });
   };
 
+  const tabs = [
+    { key: "code", label: t.shareTabCode ?? "Code", Icon: IconCode },
+    { key: "questionnaire", label: t.shareTabQuestionnaire ?? "Questionnaire", Icon: IconQuestionnaire },
+    { key: "studies", label: t.shareTabStudies ?? "Studies", Icon: IconStudies },
+  ];
+
+  const handleTab = (key) => {
+    if (key === "code") return;
+    if (key === "questionnaire") navigation.navigate("QuestionnaireHub");
+    if (key === "studies") {
+      Alert.alert(
+        t.comingSoon ?? "Coming soon",
+        t.studiesComingSoon ?? "Studies feature is coming soon."
+      );
+    }
+  };
+
   return (
     <View style={[styles.root, { backgroundColor: theme.bgSecondary ?? "#F0F4F8" }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8, backgroundColor: PRIMARY }]}>
@@ -95,10 +118,9 @@ export default function ShareScreen({ navigation }) {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 20, alignItems: "center", paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 20, alignItems: "center", paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Code card */}
         <TouchableOpacity style={styles.codeCard} onPress={shareCode} activeOpacity={0.8}>
           {loading ? (
             <ActivityIndicator color={PRIMARY} size="large" />
@@ -117,7 +139,6 @@ export default function ShareScreen({ navigation }) {
           )}
         </TouchableOpacity>
 
-        {/* Info card */}
         <View style={styles.infoCard}>
           <Text style={styles.description}>
             {t.shareDescription ?? "Secure access to your training report on this website:"}
@@ -131,7 +152,6 @@ export default function ShareScreen({ navigation }) {
           )}
         </View>
 
-        {/* Include notes toggle */}
         <View style={styles.toggleRow}>
           <Switch
             value={includeNotes}
@@ -148,21 +168,11 @@ export default function ShareScreen({ navigation }) {
           </Text>
         </View>
 
-        {/* Timer card */}
         <View style={styles.timerCard}>
           <View style={styles.timerHeader}>
             <Svg width="18" height="18" viewBox="0 0 24 24">
-              <Circle
-                cx="12" cy="12" r="9" fill="none"
-                stroke={expired ? "#ccc" : PRIMARY}
-                strokeWidth="1.5"
-              />
-              <Path
-                d="M12 7 L12 12 L15 14"
-                stroke={expired ? "#ccc" : PRIMARY}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
+              <Circle cx="12" cy="12" r="9" fill="none" stroke={expired ? "#ccc" : PRIMARY} strokeWidth="1.5" />
+              <Path d="M12 7 L12 12 L15 14" stroke={expired ? "#ccc" : PRIMARY} strokeWidth="1.5" strokeLinecap="round" />
             </Svg>
             <Text style={[styles.timerLabel, { color: expired ? "#ccc" : PRIMARY }]}>
               {expired
@@ -172,11 +182,7 @@ export default function ShareScreen({ navigation }) {
           </View>
           <ArcTimer secondsLeft={secondsLeft} color={expired ? "#D1D5DB" : PRIMARY} />
           <View style={styles.divider} />
-          <TouchableOpacity
-            onPress={() => generateCode()}
-            disabled={loading}
-            style={styles.generateBtn}
-          >
+          <TouchableOpacity onPress={() => generateCode()} disabled={loading} style={styles.generateBtn}>
             {loading ? (
               <ActivityIndicator color={PRIMARY} />
             ) : (
@@ -187,6 +193,36 @@ export default function ShareScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Bottom tab bar */}
+      <View style={styles.tabBarWrapper}>
+        <View style={[styles.tabBar, { paddingBottom: insets.bottom + 8 }]}>
+          {tabs.map(({ key, label, Icon }) => {
+            const active = key === "code";
+            return (
+              <TouchableOpacity
+                key={key}
+                style={styles.tabBtn}
+                onPress={() => handleTab(key)}
+                activeOpacity={0.7}
+              >
+                <Icon color={active ? PRIMARY : MUTED} size={24} />
+                <Text
+                  style={[
+                    styles.tabLabel,
+                    {
+                      color: active ? PRIMARY : MUTED,
+                      fontWeight: active ? "700" : "500",
+                    },
+                  ]}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
     </View>
   );
 }

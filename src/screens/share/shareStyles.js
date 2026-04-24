@@ -109,4 +109,16 @@ export const styles = StyleSheet.create({
   },
   generateBtn: { paddingVertical: 2, marginTop: 4, marginBottom: 4 },
   generateText: { fontSize: FontSize.sm, fontWeight: "800", letterSpacing: 1.5 },
+
+  // Tab bar styles
+  tabBarWrapper: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingTop: 6,
+    borderTopWidth: 1.5,
+    borderTopColor: "#a0b8d0",
+  },
+  tabBar: { flexDirection: "row", paddingTop: 6 },
+  tabBtn: { flex: 1, alignItems: "center", gap: 0 },
+  tabLabel: { fontSize: 11 },
 });

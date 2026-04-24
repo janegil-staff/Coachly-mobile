@@ -190,3 +190,19 @@ export const shareApi = {
     return data;
   },
 };
+
+export const questionnairesApi = {
+  submit: async ({ type, answers, date }) => {
+    return await request("POST", "/api/questionnaires", { type, answers, date });
+  },
+  list: async ({ type, limit } = {}) => {
+    const qs = [];
+    if (type) qs.push("type=" + encodeURIComponent(type));
+    if (limit) qs.push("limit=" + limit);
+    const suffix = qs.length ? "?" + qs.join("&") : "";
+    return await request("GET", "/api/questionnaires" + suffix);
+  },
+  latest: async (type) => {
+    return await request("GET", "/api/questionnaires/latest?type=" + encodeURIComponent(type));
+  },
+};

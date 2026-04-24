@@ -29,6 +29,9 @@ import WorkoutsScreen from "../screens/workouts/WorkoutsScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import AdviceScreen from "../screens/advice/AdviceScreen";
 import ShareScreen from "../screens/share/ShareScreen";
+import QuestionnaireHubScreen from "../screens/questionnaires/QuestionnaireHubScreen";
+import HooperScreen from "../screens/questionnaires/HooperScreen";
+import RestqScreen from "../screens/questionnaires/RestqScreen";
 import ChangeEmailScreen from "../screens/profile/ChangeEmailScreen";
 import AboutScreen from "../screens/settings/AboutScreen";
 import LanguageScreen from "../screens/settings/LanguageScreen";
@@ -74,6 +77,9 @@ function AppStack() {
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Advice" component={AdviceScreen} />
       <Stack.Screen name="Share" component={ShareScreen} />
+      <Stack.Screen name="QuestionnaireHub" component={QuestionnaireHubScreen} />
+      <Stack.Screen name="Hooper" component={HooperScreen} />
+      <Stack.Screen name="Restq" component={RestqScreen} />
       <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="Language" component={LanguageScreen} />
