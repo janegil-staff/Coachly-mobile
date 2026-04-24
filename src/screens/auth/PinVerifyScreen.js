@@ -189,7 +189,6 @@ export default function PinVerifyScreen({ onSuccess, onFallback }) {
           caretHidden
           contextMenuHidden
           textContentType="oneTimeCode"
-          editable={!checking}
         />
       </Pressable>
     </View>

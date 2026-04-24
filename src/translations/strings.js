@@ -166,7 +166,64 @@ const strings = {
     "myDiary": "My Diary",
     "myWorkouts": "My Workouts",
     "logToday": "LOG TODAY",
-    "editToday": "EDIT TODAY"
+    "editToday": "EDIT TODAY",
+    "termsTitle": "Terms & Conditions",
+    "termsUpdated": "Last updated: April 24, 2026",
+    "termsSections": [
+      {
+        "title": "1. Acceptance of Terms",
+        "body": "[PLACEHOLDER] By creating an account and using Coachly, you agree to these Terms & Conditions. If you do not agree, do not use the service."
+      },
+      {
+        "title": "2. User Accounts",
+        "body": "[PLACEHOLDER] You are responsible for keeping your PIN confidential. You agree to provide accurate information during registration."
+      },
+      {
+        "title": "3. Health & Fitness Disclaimer",
+        "body": "[PLACEHOLDER] Coachly is a tracking tool, not a medical service. Consult a qualified professional before starting any exercise program. We are not liable for injury, illness, or other harm resulting from use of the app."
+      },
+      {
+        "title": "4. Your Data",
+        "body": "[PLACEHOLDER] Data you log is stored securely and used to show your progress over time. See the Privacy Policy for details on collection, storage, and sharing."
+      },
+      {
+        "title": "5. Coaching Relationships",
+        "body": "[PLACEHOLDER] If you connect with a coach, selected data is shared with them. You can revoke access at any time."
+      },
+      {
+        "title": "6. Limitation of Liability",
+        "body": "[PLACEHOLDER] Coachly is provided \"as is\" without warranty of any kind. To the fullest extent permitted by law, we disclaim all liability for damages arising from use of the service."
+      },
+      {
+        "title": "7. Changes to These Terms",
+        "body": "[PLACEHOLDER] We may update these Terms from time to time. Continued use after changes constitutes acceptance of the updated Terms."
+      },
+      {
+        "title": "8. Contact",
+        "body": "[PLACEHOLDER] Questions? Reach us at support@coachly.app."
+      }
+    ],
+    "aboutTitle": "About Coachly",
+    "aboutTagline": "Track your training. Understand your progress.",
+    "aboutVersion": "Version",
+    "aboutSections": [
+      {
+        "title": "What is Coachly?",
+        "body": "Coachly helps you track workouts, wellbeing, and nutrition in one place. Log how each day went — rest or training, effort, mood, energy, sleep, soreness — and see trends over time."
+      },
+      {
+        "title": "Designed for clients and coaches",
+        "body": "Use Coachly on your own, or share your progress with a coach. They can follow along, spot patterns, and help you stay on track."
+      },
+      {
+        "title": "Your data, your control",
+        "body": "Your log is private by default. Coaches only see what you choose to share, and you can revoke access at any time."
+      },
+      {
+        "title": "Built to be simple",
+        "body": "One quick daily log. Clear visual progress. No distractions, no noise."
+      }
+    ]
   },
   "no": {
     "appName": "Coachly",
@@ -330,7 +387,64 @@ const strings = {
     "myDiary": "Min dagbok",
     "myWorkouts": "Mine treninger",
     "logToday": "LOGG I DAG",
-    "editToday": "REDIGER I DAG"
+    "editToday": "REDIGER I DAG",
+    "termsTitle": "Vilkår og betingelser",
+    "termsUpdated": "Sist oppdatert: 24. april 2026",
+    "termsSections": [
+      {
+        "title": "1. Aksept av vilkår",
+        "body": "[PLACEHOLDER] Ved å opprette en konto og bruke Coachly godtar du disse vilkårene. Hvis du ikke godtar dem, må du ikke bruke tjenesten."
+      },
+      {
+        "title": "2. Brukerkontoer",
+        "body": "[PLACEHOLDER] Du er ansvarlig for å holde PIN-koden din konfidensiell. Du godtar å oppgi riktig informasjon ved registrering."
+      },
+      {
+        "title": "3. Helse- og treningsfraskrivelse",
+        "body": "[PLACEHOLDER] Coachly er et loggeverktøy, ikke en medisinsk tjeneste. Rådfør deg med en kvalifisert fagperson før du starter et treningsprogram. Vi er ikke ansvarlige for skade, sykdom eller annen skade som følge av bruk av appen."
+      },
+      {
+        "title": "4. Dataene dine",
+        "body": "[PLACEHOLDER] Data du logger lagres trygt og brukes til å vise fremgangen din over tid. Se personvernerklæringen for detaljer om innsamling, lagring og deling."
+      },
+      {
+        "title": "5. Treningsrelasjoner",
+        "body": "[PLACEHOLDER] Hvis du kobler deg til en trener, deles utvalgte data med vedkommende. Du kan tilbakekalle tilgang når som helst."
+      },
+      {
+        "title": "6. Ansvarsbegrensning",
+        "body": "[PLACEHOLDER] Coachly leveres \"som den er\" uten noen form for garanti. Så langt loven tillater, fraskriver vi oss alt ansvar for skader som oppstår ved bruk av tjenesten."
+      },
+      {
+        "title": "7. Endringer i disse vilkårene",
+        "body": "[PLACEHOLDER] Vi kan oppdatere disse vilkårene fra tid til annen. Fortsatt bruk etter endringer utgjør aksept av de oppdaterte vilkårene."
+      },
+      {
+        "title": "8. Kontakt",
+        "body": "[PLACEHOLDER] Spørsmål? Kontakt oss på support@coachly.app."
+      }
+    ],
+    "aboutTitle": "Om Coachly",
+    "aboutTagline": "Følg treningen. Forstå fremgangen.",
+    "aboutVersion": "Versjon",
+    "aboutSections": [
+      {
+        "title": "Hva er Coachly?",
+        "body": "Coachly hjelper deg å logge trening, velvære og ernæring på ett sted. Logg hvordan hver dag gikk — hvile eller trening, innsats, humør, energi, søvn, stølhet — og se trender over tid."
+      },
+      {
+        "title": "Laget for klienter og trenere",
+        "body": "Bruk Coachly alene, eller del fremgangen din med en trener. De kan følge med, se mønstre og hjelpe deg å holde kursen."
+      },
+      {
+        "title": "Dine data, din kontroll",
+        "body": "Loggen din er privat som standard. Trenere ser bare det du velger å dele, og du kan tilbakekalle tilgang når som helst."
+      },
+      {
+        "title": "Laget for å være enkelt",
+        "body": "Én rask daglig logg. Tydelig visuell fremgang. Ingen distraksjoner, ingen støy."
+      }
+    ]
   },
   "nl": {
     "appName": "Coachly",
@@ -494,7 +608,64 @@ const strings = {
     "myDiary": "Mijn dagboek",
     "myWorkouts": "Mijn trainingen",
     "logToday": "LOG VANDAAG",
-    "editToday": "BEWERK VANDAAG"
+    "editToday": "BEWERK VANDAAG",
+    "termsTitle": "Algemene voorwaarden",
+    "termsUpdated": "Laatst bijgewerkt: 24 april 2026",
+    "termsSections": [
+      {
+        "title": "1. Aanvaarding van voorwaarden",
+        "body": "[PLACEHOLDER] Door een account aan te maken en Coachly te gebruiken, ga je akkoord met deze voorwaarden. Als je niet akkoord gaat, gebruik de dienst dan niet."
+      },
+      {
+        "title": "2. Gebruikersaccounts",
+        "body": "[PLACEHOLDER] Je bent verantwoordelijk voor het geheimhouden van je PIN. Je gaat ermee akkoord nauwkeurige informatie te verstrekken bij registratie."
+      },
+      {
+        "title": "3. Gezondheid en fitness disclaimer",
+        "body": "[PLACEHOLDER] Coachly is een trackingtool, geen medische dienst. Raadpleeg een gekwalificeerde professional voordat je aan een trainingsprogramma begint. Wij zijn niet aansprakelijk voor letsel, ziekte of andere schade als gevolg van gebruik van de app."
+      },
+      {
+        "title": "4. Jouw gegevens",
+        "body": "[PLACEHOLDER] De gegevens die je logt worden veilig opgeslagen en gebruikt om je voortgang te tonen. Zie het privacybeleid voor details over verzameling, opslag en deling."
+      },
+      {
+        "title": "5. Coachrelaties",
+        "body": "[PLACEHOLDER] Als je verbinding maakt met een coach, worden geselecteerde gegevens met hen gedeeld. Je kunt de toegang op elk moment intrekken."
+      },
+      {
+        "title": "6. Aansprakelijkheidsbeperking",
+        "body": "[PLACEHOLDER] Coachly wordt geleverd \"as is\" zonder enige garantie. Voor zover wettelijk toegestaan wijzen wij alle aansprakelijkheid af voor schade die voortvloeit uit het gebruik van de dienst."
+      },
+      {
+        "title": "7. Wijzigingen in deze voorwaarden",
+        "body": "[PLACEHOLDER] We kunnen deze voorwaarden van tijd tot tijd bijwerken. Voortgezet gebruik na wijzigingen vormt acceptatie van de bijgewerkte voorwaarden."
+      },
+      {
+        "title": "8. Contact",
+        "body": "[PLACEHOLDER] Vragen? Bereik ons via support@coachly.app."
+      }
+    ],
+    "aboutTitle": "Over Coachly",
+    "aboutTagline": "Volg je training. Begrijp je vooruitgang.",
+    "aboutVersion": "Versie",
+    "aboutSections": [
+      {
+        "title": "Wat is Coachly?",
+        "body": "Coachly helpt je trainingen, welzijn en voeding op één plek bij te houden. Log hoe elke dag ging — rust of training, inspanning, stemming, energie, slaap, spierpijn — en zie trends in de tijd."
+      },
+      {
+        "title": "Gemaakt voor cliënten en coaches",
+        "body": "Gebruik Coachly alleen of deel je voortgang met een coach. Ze kunnen meekijken, patronen herkennen en je op koers helpen houden."
+      },
+      {
+        "title": "Jouw gegevens, jouw controle",
+        "body": "Je logboek is standaard privé. Coaches zien alleen wat je kiest om te delen, en je kunt toegang op elk moment intrekken."
+      },
+      {
+        "title": "Gebouwd om eenvoudig te zijn",
+        "body": "Eén snelle dagelijkse log. Duidelijke visuele voortgang. Geen afleiding, geen ruis."
+      }
+    ]
   },
   "fr": {
     "appName": "Coachly",
@@ -658,7 +829,64 @@ const strings = {
     "myDiary": "Mon journal",
     "myWorkouts": "Mes entraînements",
     "logToday": "ENREGISTRER",
-    "editToday": "MODIFIER"
+    "editToday": "MODIFIER",
+    "termsTitle": "Conditions générales",
+    "termsUpdated": "Dernière mise à jour : 24 avril 2026",
+    "termsSections": [
+      {
+        "title": "1. Acceptation des conditions",
+        "body": "[PLACEHOLDER] En créant un compte et en utilisant Coachly, vous acceptez ces conditions générales. Si vous n'acceptez pas, n'utilisez pas le service."
+      },
+      {
+        "title": "2. Comptes utilisateurs",
+        "body": "[PLACEHOLDER] Vous êtes responsable de la confidentialité de votre code PIN. Vous acceptez de fournir des informations exactes lors de l'inscription."
+      },
+      {
+        "title": "3. Avertissement santé et fitness",
+        "body": "[PLACEHOLDER] Coachly est un outil de suivi, pas un service médical. Consultez un professionnel qualifié avant de commencer tout programme d'exercice. Nous ne sommes pas responsables des blessures, maladies ou autres dommages résultant de l'utilisation de l'application."
+      },
+      {
+        "title": "4. Vos données",
+        "body": "[PLACEHOLDER] Les données que vous enregistrez sont stockées en toute sécurité et utilisées pour afficher vos progrès. Consultez la politique de confidentialité pour les détails sur la collecte, le stockage et le partage."
+      },
+      {
+        "title": "5. Relations de coaching",
+        "body": "[PLACEHOLDER] Si vous vous connectez avec un coach, certaines données sont partagées avec lui. Vous pouvez révoquer l'accès à tout moment."
+      },
+      {
+        "title": "6. Limitation de responsabilité",
+        "body": "[PLACEHOLDER] Coachly est fourni \"tel quel\" sans garantie d'aucune sorte. Dans toute la mesure permise par la loi, nous déclinons toute responsabilité pour les dommages résultant de l'utilisation du service."
+      },
+      {
+        "title": "7. Modifications de ces conditions",
+        "body": "[PLACEHOLDER] Nous pouvons mettre à jour ces conditions de temps à autre. L'utilisation continue après les modifications constitue l'acceptation des conditions mises à jour."
+      },
+      {
+        "title": "8. Contact",
+        "body": "[PLACEHOLDER] Des questions ? Contactez-nous à support@coachly.app."
+      }
+    ],
+    "aboutTitle": "À propos de Coachly",
+    "aboutTagline": "Suivez votre entraînement. Comprenez vos progrès.",
+    "aboutVersion": "Version",
+    "aboutSections": [
+      {
+        "title": "Qu'est-ce que Coachly ?",
+        "body": "Coachly vous aide à suivre entraînements, bien-être et nutrition en un seul endroit. Enregistrez comment s'est passée chaque journée — repos ou entraînement, effort, humeur, énergie, sommeil, courbatures — et voyez les tendances au fil du temps."
+      },
+      {
+        "title": "Conçu pour les clients et les coachs",
+        "body": "Utilisez Coachly seul, ou partagez vos progrès avec un coach. Il peut suivre, repérer des tendances et vous aider à rester sur la bonne voie."
+      },
+      {
+        "title": "Vos données, votre contrôle",
+        "body": "Votre journal est privé par défaut. Les coachs ne voient que ce que vous choisissez de partager, et vous pouvez révoquer l'accès à tout moment."
+      },
+      {
+        "title": "Conçu pour être simple",
+        "body": "Un journal quotidien rapide. Progrès visuels clairs. Sans distraction, sans bruit."
+      }
+    ]
   },
   "de": {
     "appName": "Coachly",
@@ -822,7 +1050,64 @@ const strings = {
     "myDiary": "Mein Tagebuch",
     "myWorkouts": "Meine Trainings",
     "logToday": "HEUTE EINTRAGEN",
-    "editToday": "HEUTE BEARBEITEN"
+    "editToday": "HEUTE BEARBEITEN",
+    "termsTitle": "Allgemeine Geschäftsbedingungen",
+    "termsUpdated": "Zuletzt aktualisiert: 24. April 2026",
+    "termsSections": [
+      {
+        "title": "1. Annahme der Bedingungen",
+        "body": "[PLACEHOLDER] Durch das Erstellen eines Kontos und die Nutzung von Coachly stimmen Sie diesen Bedingungen zu. Wenn Sie nicht zustimmen, nutzen Sie den Dienst nicht."
+      },
+      {
+        "title": "2. Benutzerkonten",
+        "body": "[PLACEHOLDER] Sie sind dafür verantwortlich, Ihre PIN vertraulich zu halten. Sie stimmen zu, bei der Registrierung korrekte Informationen anzugeben."
+      },
+      {
+        "title": "3. Gesundheits- und Fitness-Haftungsausschluss",
+        "body": "[PLACEHOLDER] Coachly ist ein Tracking-Tool, kein medizinischer Dienst. Konsultieren Sie einen qualifizierten Fachmann, bevor Sie ein Trainingsprogramm beginnen. Wir haften nicht für Verletzungen, Krankheiten oder andere Schäden, die durch die Nutzung der App entstehen."
+      },
+      {
+        "title": "4. Ihre Daten",
+        "body": "[PLACEHOLDER] Protokollierte Daten werden sicher gespeichert und verwendet, um Ihren Fortschritt anzuzeigen. Details zu Erhebung, Speicherung und Weitergabe finden Sie in der Datenschutzerklärung."
+      },
+      {
+        "title": "5. Coaching-Beziehungen",
+        "body": "[PLACEHOLDER] Wenn Sie sich mit einem Coach verbinden, werden ausgewählte Daten mit ihm geteilt. Sie können den Zugriff jederzeit widerrufen."
+      },
+      {
+        "title": "6. Haftungsbeschränkung",
+        "body": "[PLACEHOLDER] Coachly wird \"wie besehen\" ohne jegliche Gewährleistung bereitgestellt. Soweit gesetzlich zulässig, schließen wir jede Haftung für Schäden aus der Nutzung des Dienstes aus."
+      },
+      {
+        "title": "7. Änderungen dieser Bedingungen",
+        "body": "[PLACEHOLDER] Wir können diese Bedingungen von Zeit zu Zeit aktualisieren. Die fortgesetzte Nutzung nach Änderungen stellt die Annahme der aktualisierten Bedingungen dar."
+      },
+      {
+        "title": "8. Kontakt",
+        "body": "[PLACEHOLDER] Fragen? Erreichen Sie uns unter support@coachly.app."
+      }
+    ],
+    "aboutTitle": "Über Coachly",
+    "aboutTagline": "Verfolge dein Training. Verstehe deinen Fortschritt.",
+    "aboutVersion": "Version",
+    "aboutSections": [
+      {
+        "title": "Was ist Coachly?",
+        "body": "Coachly hilft dir, Training, Wohlbefinden und Ernährung an einem Ort zu verfolgen. Protokolliere, wie jeder Tag lief — Ruhe oder Training, Anstrengung, Stimmung, Energie, Schlaf, Muskelkater — und sieh Trends im Zeitverlauf."
+      },
+      {
+        "title": "Für Klienten und Coaches entwickelt",
+        "body": "Nutze Coachly allein oder teile deinen Fortschritt mit einem Coach. Er kann mitverfolgen, Muster erkennen und dir helfen, am Ball zu bleiben."
+      },
+      {
+        "title": "Deine Daten, deine Kontrolle",
+        "body": "Dein Protokoll ist standardmäßig privat. Coaches sehen nur, was du teilst, und du kannst den Zugriff jederzeit widerrufen."
+      },
+      {
+        "title": "Einfach gebaut",
+        "body": "Ein schnelles tägliches Protokoll. Klarer visueller Fortschritt. Keine Ablenkung, kein Rauschen."
+      }
+    ]
   },
   "it": {
     "appName": "Coachly",
@@ -986,7 +1271,64 @@ const strings = {
     "myDiary": "Il mio diario",
     "myWorkouts": "I miei allenamenti",
     "logToday": "REGISTRA OGGI",
-    "editToday": "MODIFICA OGGI"
+    "editToday": "MODIFICA OGGI",
+    "termsTitle": "Termini e condizioni",
+    "termsUpdated": "Ultimo aggiornamento: 24 aprile 2026",
+    "termsSections": [
+      {
+        "title": "1. Accettazione dei termini",
+        "body": "[PLACEHOLDER] Creando un account e utilizzando Coachly, accetti questi termini e condizioni. Se non sei d'accordo, non utilizzare il servizio."
+      },
+      {
+        "title": "2. Account utente",
+        "body": "[PLACEHOLDER] Sei responsabile della riservatezza del tuo PIN. Accetti di fornire informazioni accurate durante la registrazione."
+      },
+      {
+        "title": "3. Disclaimer salute e fitness",
+        "body": "[PLACEHOLDER] Coachly è uno strumento di tracciamento, non un servizio medico. Consulta un professionista qualificato prima di iniziare qualsiasi programma di esercizi. Non siamo responsabili per lesioni, malattie o altri danni derivanti dall'uso dell'app."
+      },
+      {
+        "title": "4. I tuoi dati",
+        "body": "[PLACEHOLDER] I dati che registri sono conservati in modo sicuro e utilizzati per mostrare i tuoi progressi. Consulta l'informativa sulla privacy per i dettagli su raccolta, archiviazione e condivisione."
+      },
+      {
+        "title": "5. Rapporti di coaching",
+        "body": "[PLACEHOLDER] Se ti connetti con un coach, i dati selezionati vengono condivisi con lui. Puoi revocare l'accesso in qualsiasi momento."
+      },
+      {
+        "title": "6. Limitazione di responsabilità",
+        "body": "[PLACEHOLDER] Coachly è fornito \"così com'è\" senza garanzie di alcun tipo. Nella misura massima consentita dalla legge, decliniamo ogni responsabilità per danni derivanti dall'uso del servizio."
+      },
+      {
+        "title": "7. Modifiche a questi termini",
+        "body": "[PLACEHOLDER] Possiamo aggiornare questi termini di tanto in tanto. L'uso continuato dopo le modifiche costituisce accettazione dei termini aggiornati."
+      },
+      {
+        "title": "8. Contatti",
+        "body": "[PLACEHOLDER] Domande? Contattaci a support@coachly.app."
+      }
+    ],
+    "aboutTitle": "Informazioni su Coachly",
+    "aboutTagline": "Monitora i tuoi allenamenti. Comprendi i tuoi progressi.",
+    "aboutVersion": "Versione",
+    "aboutSections": [
+      {
+        "title": "Cos'è Coachly?",
+        "body": "Coachly ti aiuta a monitorare allenamenti, benessere e nutrizione in un unico posto. Registra com'è andata ogni giornata — riposo o allenamento, sforzo, umore, energia, sonno, indolenzimento — e osserva le tendenze nel tempo."
+      },
+      {
+        "title": "Progettato per clienti e coach",
+        "body": "Usa Coachly da solo o condividi i tuoi progressi con un coach. Può seguirti, individuare schemi e aiutarti a rimanere in carreggiata."
+      },
+      {
+        "title": "I tuoi dati, il tuo controllo",
+        "body": "Il tuo registro è privato per impostazione predefinita. I coach vedono solo ciò che scegli di condividere e puoi revocare l'accesso in qualsiasi momento."
+      },
+      {
+        "title": "Costruito per essere semplice",
+        "body": "Un registro quotidiano veloce. Progressi visivi chiari. Nessuna distrazione, nessun rumore."
+      }
+    ]
   },
   "sv": {
     "appName": "Coachly",
@@ -1150,7 +1492,64 @@ const strings = {
     "myDiary": "Min dagbok",
     "myWorkouts": "Mina träningar",
     "logToday": "LOGGA IDAG",
-    "editToday": "REDIGERA IDAG"
+    "editToday": "REDIGERA IDAG",
+    "termsTitle": "Villkor",
+    "termsUpdated": "Senast uppdaterad: 24 april 2026",
+    "termsSections": [
+      {
+        "title": "1. Godkännande av villkor",
+        "body": "[PLACEHOLDER] Genom att skapa ett konto och använda Coachly godkänner du dessa villkor. Om du inte godkänner dem, använd inte tjänsten."
+      },
+      {
+        "title": "2. Användarkonton",
+        "body": "[PLACEHOLDER] Du ansvarar för att hålla din PIN-kod konfidentiell. Du samtycker till att lämna korrekt information vid registrering."
+      },
+      {
+        "title": "3. Hälso- och träningsfriskrivning",
+        "body": "[PLACEHOLDER] Coachly är ett loggningsverktyg, inte en medicinsk tjänst. Rådgör med en kvalificerad yrkesperson innan du påbörjar ett träningsprogram. Vi ansvarar inte för skada, sjukdom eller annan skada till följd av användning av appen."
+      },
+      {
+        "title": "4. Dina data",
+        "body": "[PLACEHOLDER] Data du loggar lagras säkert och används för att visa din framsteg. Se integritetspolicyn för detaljer om insamling, lagring och delning."
+      },
+      {
+        "title": "5. Coachrelationer",
+        "body": "[PLACEHOLDER] Om du ansluter till en coach delas utvalda data med dem. Du kan återkalla åtkomsten när som helst."
+      },
+      {
+        "title": "6. Ansvarsbegränsning",
+        "body": "[PLACEHOLDER] Coachly tillhandahålls \"i befintligt skick\" utan någon garanti. I den utsträckning lagen tillåter frånsäger vi oss allt ansvar för skador till följd av användning av tjänsten."
+      },
+      {
+        "title": "7. Ändringar av dessa villkor",
+        "body": "[PLACEHOLDER] Vi kan uppdatera dessa villkor från tid till annan. Fortsatt användning efter ändringar utgör godkännande av de uppdaterade villkoren."
+      },
+      {
+        "title": "8. Kontakt",
+        "body": "[PLACEHOLDER] Frågor? Nå oss på support@coachly.app."
+      }
+    ],
+    "aboutTitle": "Om Coachly",
+    "aboutTagline": "Följ din träning. Förstå dina framsteg.",
+    "aboutVersion": "Version",
+    "aboutSections": [
+      {
+        "title": "Vad är Coachly?",
+        "body": "Coachly hjälper dig att följa träning, välmående och kost på ett ställe. Logga hur varje dag gick — vila eller träning, ansträngning, humör, energi, sömn, ömhet — och se trender över tid."
+      },
+      {
+        "title": "Designad för klienter och coacher",
+        "body": "Använd Coachly på egen hand, eller dela dina framsteg med en coach. De kan följa med, upptäcka mönster och hjälpa dig att hålla kursen."
+      },
+      {
+        "title": "Dina data, din kontroll",
+        "body": "Din logg är privat som standard. Coacher ser bara det du väljer att dela, och du kan återkalla åtkomst när som helst."
+      },
+      {
+        "title": "Byggd för att vara enkel",
+        "body": "En snabb daglig logg. Tydlig visuell framsteg. Inga distraktioner, inget brus."
+      }
+    ]
   },
   "da": {
     "appName": "Coachly",
@@ -1314,7 +1713,64 @@ const strings = {
     "myDiary": "Min dagbog",
     "myWorkouts": "Mine træninger",
     "logToday": "LOG I DAG",
-    "editToday": "REDIGER I DAG"
+    "editToday": "REDIGER I DAG",
+    "termsTitle": "Vilkår og betingelser",
+    "termsUpdated": "Senest opdateret: 24. april 2026",
+    "termsSections": [
+      {
+        "title": "1. Accept af vilkår",
+        "body": "[PLACEHOLDER] Ved at oprette en konto og bruge Coachly accepterer du disse vilkår. Hvis du ikke accepterer, må du ikke bruge tjenesten."
+      },
+      {
+        "title": "2. Brugerkonti",
+        "body": "[PLACEHOLDER] Du er ansvarlig for at holde din PIN-kode fortrolig. Du accepterer at afgive nøjagtige oplysninger ved registrering."
+      },
+      {
+        "title": "3. Sundheds- og træningsfraskrivelse",
+        "body": "[PLACEHOLDER] Coachly er et loggeværktøj, ikke en medicinsk tjeneste. Konsulter en kvalificeret fagperson, før du starter et træningsprogram. Vi er ikke ansvarlige for skade, sygdom eller anden skade som følge af brug af appen."
+      },
+      {
+        "title": "4. Dine data",
+        "body": "[PLACEHOLDER] Data du logger gemmes sikkert og bruges til at vise dine fremskridt. Se privatlivspolitikken for detaljer om indsamling, lagring og deling."
+      },
+      {
+        "title": "5. Coachrelationer",
+        "body": "[PLACEHOLDER] Hvis du forbinder dig med en coach, deles udvalgte data med dem. Du kan tilbagekalde adgangen når som helst."
+      },
+      {
+        "title": "6. Ansvarsbegrænsning",
+        "body": "[PLACEHOLDER] Coachly leveres \"som den er\" uden nogen form for garanti. I det omfang loven tillader det, fraskriver vi os alt ansvar for skader som følge af brug af tjenesten."
+      },
+      {
+        "title": "7. Ændringer af disse vilkår",
+        "body": "[PLACEHOLDER] Vi kan opdatere disse vilkår fra tid til anden. Fortsat brug efter ændringer udgør accept af de opdaterede vilkår."
+      },
+      {
+        "title": "8. Kontakt",
+        "body": "[PLACEHOLDER] Spørgsmål? Kontakt os på support@coachly.app."
+      }
+    ],
+    "aboutTitle": "Om Coachly",
+    "aboutTagline": "Følg din træning. Forstå dine fremskridt.",
+    "aboutVersion": "Version",
+    "aboutSections": [
+      {
+        "title": "Hvad er Coachly?",
+        "body": "Coachly hjælper dig med at logge træning, trivsel og ernæring ét sted. Log hvordan hver dag gik — hvile eller træning, indsats, humør, energi, søvn, ømhed — og se tendenser over tid."
+      },
+      {
+        "title": "Designet til klienter og trænere",
+        "body": "Brug Coachly alene, eller del dine fremskridt med en træner. De kan følge med, opdage mønstre og hjælpe dig med at holde kursen."
+      },
+      {
+        "title": "Dine data, din kontrol",
+        "body": "Din log er privat som standard. Trænere ser kun det, du vælger at dele, og du kan tilbagekalde adgang når som helst."
+      },
+      {
+        "title": "Bygget til at være enkelt",
+        "body": "Én hurtig daglig log. Tydelige visuelle fremskridt. Ingen distraktioner, ingen støj."
+      }
+    ]
   },
   "fi": {
     "appName": "Coachly",
@@ -1478,7 +1934,64 @@ const strings = {
     "myDiary": "Päiväkirja",
     "myWorkouts": "Harjoitukset",
     "logToday": "KIRJAA TÄNÄÄN",
-    "editToday": "MUOKKAA"
+    "editToday": "MUOKKAA",
+    "termsTitle": "Käyttöehdot",
+    "termsUpdated": "Viimeksi päivitetty: 24. huhtikuuta 2026",
+    "termsSections": [
+      {
+        "title": "1. Ehtojen hyväksyminen",
+        "body": "[PLACEHOLDER] Luomalla tilin ja käyttämällä Coachlya hyväksyt nämä ehdot. Jos et hyväksy, älä käytä palvelua."
+      },
+      {
+        "title": "2. Käyttäjätilit",
+        "body": "[PLACEHOLDER] Olet vastuussa PIN-koodisi pitämisestä salassa. Sitoudut antamaan oikeat tiedot rekisteröityessäsi."
+      },
+      {
+        "title": "3. Terveys- ja kuntoilujulkaisu",
+        "body": "[PLACEHOLDER] Coachly on seurantatyökalu, ei lääketieteellinen palvelu. Konsultoi pätevää ammattilaista ennen harjoitusohjelman aloittamista. Emme ole vastuussa sovelluksen käytöstä aiheutuvasta vammasta, sairaudesta tai muusta haitasta."
+      },
+      {
+        "title": "4. Tietosi",
+        "body": "[PLACEHOLDER] Kirjaamasi tiedot tallennetaan turvallisesti ja niitä käytetään edistymisesi näyttämiseen. Katso tietosuojakäytännöstä tarkempia tietoja keräämisestä, tallentamisesta ja jakamisesta."
+      },
+      {
+        "title": "5. Valmennussuhteet",
+        "body": "[PLACEHOLDER] Jos yhdistät valmentajaan, valitut tiedot jaetaan hänen kanssaan. Voit peruuttaa pääsyn milloin tahansa."
+      },
+      {
+        "title": "6. Vastuunrajoitus",
+        "body": "[PLACEHOLDER] Coachly toimitetaan \"sellaisena kuin se on\" ilman minkäänlaista takuuta. Lain sallimassa laajuudessa kiellämme kaiken vastuun palvelun käytöstä aiheutuvista vahingoista."
+      },
+      {
+        "title": "7. Näiden ehtojen muutokset",
+        "body": "[PLACEHOLDER] Voimme päivittää näitä ehtoja ajoittain. Jatkuva käyttö muutosten jälkeen muodostaa hyväksynnän päivitettyihin ehtoihin."
+      },
+      {
+        "title": "8. Yhteystiedot",
+        "body": "[PLACEHOLDER] Kysymyksiä? Ota yhteyttä osoitteeseen support@coachly.app."
+      }
+    ],
+    "aboutTitle": "Tietoja Coachlysta",
+    "aboutTagline": "Seuraa harjoitteluasi. Ymmärrä edistymisesi.",
+    "aboutVersion": "Versio",
+    "aboutSections": [
+      {
+        "title": "Mikä on Coachly?",
+        "body": "Coachly auttaa seuraamaan harjoittelua, hyvinvointia ja ravintoa yhdessä paikassa. Kirjaa, miten jokainen päivä meni — lepo vai harjoittelu, rasitus, mieliala, energia, uni, lihaskipu — ja näe trendit ajan myötä."
+      },
+      {
+        "title": "Suunniteltu asiakkaille ja valmentajille",
+        "body": "Käytä Coachlya itse tai jaa edistymisesi valmentajan kanssa. Hän voi seurata, tunnistaa malleja ja auttaa sinua pysymään kurssilla."
+      },
+      {
+        "title": "Sinun tietosi, sinun hallintasi",
+        "body": "Lokisi on yksityinen oletuksena. Valmentajat näkevät vain, mitä valitset jakaa, ja voit peruuttaa käyttöoikeuden milloin tahansa."
+      },
+      {
+        "title": "Rakennettu yksinkertaiseksi",
+        "body": "Yksi nopea päivittäinen kirjaus. Selkeä visuaalinen edistyminen. Ei häiriötekijöitä, ei melua."
+      }
+    ]
   },
   "es": {
     "appName": "Coachly",
@@ -1642,7 +2155,64 @@ const strings = {
     "myDiary": "Mi diario",
     "myWorkouts": "Mis entrenamientos",
     "logToday": "REGISTRAR HOY",
-    "editToday": "EDITAR HOY"
+    "editToday": "EDITAR HOY",
+    "termsTitle": "Términos y condiciones",
+    "termsUpdated": "Última actualización: 24 de abril de 2026",
+    "termsSections": [
+      {
+        "title": "1. Aceptación de términos",
+        "body": "[PLACEHOLDER] Al crear una cuenta y usar Coachly, aceptas estos términos y condiciones. Si no estás de acuerdo, no uses el servicio."
+      },
+      {
+        "title": "2. Cuentas de usuario",
+        "body": "[PLACEHOLDER] Eres responsable de mantener tu PIN confidencial. Aceptas proporcionar información precisa durante el registro."
+      },
+      {
+        "title": "3. Aviso de salud y fitness",
+        "body": "[PLACEHOLDER] Coachly es una herramienta de seguimiento, no un servicio médico. Consulta a un profesional cualificado antes de iniciar cualquier programa de ejercicio. No somos responsables de lesiones, enfermedades u otros daños derivados del uso de la aplicación."
+      },
+      {
+        "title": "4. Tus datos",
+        "body": "[PLACEHOLDER] Los datos que registras se almacenan de forma segura y se utilizan para mostrar tu progreso. Consulta la política de privacidad para obtener detalles sobre recopilación, almacenamiento y compartición."
+      },
+      {
+        "title": "5. Relaciones de coaching",
+        "body": "[PLACEHOLDER] Si te conectas con un coach, los datos seleccionados se comparten con él. Puedes revocar el acceso en cualquier momento."
+      },
+      {
+        "title": "6. Limitación de responsabilidad",
+        "body": "[PLACEHOLDER] Coachly se proporciona \"tal cual\" sin garantía de ningún tipo. En la medida máxima permitida por la ley, renunciamos a toda responsabilidad por daños derivados del uso del servicio."
+      },
+      {
+        "title": "7. Cambios a estos términos",
+        "body": "[PLACEHOLDER] Podemos actualizar estos términos de vez en cuando. El uso continuado después de los cambios constituye la aceptación de los términos actualizados."
+      },
+      {
+        "title": "8. Contacto",
+        "body": "[PLACEHOLDER] ¿Preguntas? Contáctanos en support@coachly.app."
+      }
+    ],
+    "aboutTitle": "Acerca de Coachly",
+    "aboutTagline": "Sigue tu entrenamiento. Entiende tu progreso.",
+    "aboutVersion": "Versión",
+    "aboutSections": [
+      {
+        "title": "¿Qué es Coachly?",
+        "body": "Coachly te ayuda a registrar entrenamientos, bienestar y nutrición en un solo lugar. Registra cómo fue cada día — descanso o entrenamiento, esfuerzo, ánimo, energía, sueño, dolor muscular — y observa las tendencias a lo largo del tiempo."
+      },
+      {
+        "title": "Diseñado para clientes y entrenadores",
+        "body": "Usa Coachly por tu cuenta, o comparte tu progreso con un entrenador. Puede seguirte, detectar patrones y ayudarte a mantenerte en el camino."
+      },
+      {
+        "title": "Tus datos, tu control",
+        "body": "Tu registro es privado por defecto. Los entrenadores solo ven lo que eliges compartir, y puedes revocar el acceso en cualquier momento."
+      },
+      {
+        "title": "Diseñado para ser simple",
+        "body": "Un registro diario rápido. Progreso visual claro. Sin distracciones, sin ruido."
+      }
+    ]
   },
   "pl": {
     "appName": "Coachly",
@@ -1806,7 +2376,64 @@ const strings = {
     "myDiary": "Mój dziennik",
     "myWorkouts": "Moje treningi",
     "logToday": "ZAPISZ DZIŚ",
-    "editToday": "EDYTUJ DZIŚ"
+    "editToday": "EDYTUJ DZIŚ",
+    "termsTitle": "Regulamin",
+    "termsUpdated": "Ostatnia aktualizacja: 24 kwietnia 2026",
+    "termsSections": [
+      {
+        "title": "1. Akceptacja warunków",
+        "body": "[PLACEHOLDER] Tworząc konto i korzystając z Coachly, akceptujesz niniejsze warunki. Jeśli się nie zgadzasz, nie korzystaj z usługi."
+      },
+      {
+        "title": "2. Konta użytkowników",
+        "body": "[PLACEHOLDER] Jesteś odpowiedzialny za zachowanie poufności swojego kodu PIN. Zgadzasz się na podanie dokładnych informacji podczas rejestracji."
+      },
+      {
+        "title": "3. Zastrzeżenie zdrowotne i fitness",
+        "body": "[PLACEHOLDER] Coachly to narzędzie do śledzenia, a nie usługa medyczna. Skonsultuj się z wykwalifikowanym specjalistą przed rozpoczęciem jakiegokolwiek programu ćwiczeń. Nie ponosimy odpowiedzialności za obrażenia, choroby lub inne szkody wynikające z korzystania z aplikacji."
+      },
+      {
+        "title": "4. Twoje dane",
+        "body": "[PLACEHOLDER] Dane, które rejestrujesz, są bezpiecznie przechowywane i wykorzystywane do pokazywania Twoich postępów. Szczegóły dotyczące gromadzenia, przechowywania i udostępniania znajdziesz w polityce prywatności."
+      },
+      {
+        "title": "5. Relacje coachingowe",
+        "body": "[PLACEHOLDER] Jeśli połączysz się z trenerem, wybrane dane są udostępniane jemu. Możesz w każdej chwili cofnąć dostęp."
+      },
+      {
+        "title": "6. Ograniczenie odpowiedzialności",
+        "body": "[PLACEHOLDER] Coachly jest dostarczany \"tak jak jest\" bez żadnej gwarancji. W najszerszym zakresie dozwolonym przez prawo wyłączamy wszelką odpowiedzialność za szkody wynikające z korzystania z usługi."
+      },
+      {
+        "title": "7. Zmiany w tych warunkach",
+        "body": "[PLACEHOLDER] Możemy od czasu do czasu aktualizować te warunki. Dalsze korzystanie po zmianach oznacza akceptację zaktualizowanych warunków."
+      },
+      {
+        "title": "8. Kontakt",
+        "body": "[PLACEHOLDER] Pytania? Skontaktuj się z nami pod adresem support@coachly.app."
+      }
+    ],
+    "aboutTitle": "O Coachly",
+    "aboutTagline": "Śledź swój trening. Zrozum swoje postępy.",
+    "aboutVersion": "Wersja",
+    "aboutSections": [
+      {
+        "title": "Czym jest Coachly?",
+        "body": "Coachly pomaga śledzić treningi, samopoczucie i odżywianie w jednym miejscu. Zapisuj, jak minął każdy dzień — odpoczynek czy trening, wysiłek, nastrój, energia, sen, zakwasy — i obserwuj trendy w czasie."
+      },
+      {
+        "title": "Zaprojektowany dla klientów i trenerów",
+        "body": "Używaj Coachly samodzielnie lub udostępnij swoje postępy trenerowi. Może on śledzić, dostrzegać wzorce i pomagać ci utrzymać kurs."
+      },
+      {
+        "title": "Twoje dane, twoja kontrola",
+        "body": "Twój dziennik jest domyślnie prywatny. Trenerzy widzą tylko to, co zdecydujesz się udostępnić, i możesz w każdej chwili cofnąć dostęp."
+      },
+      {
+        "title": "Zbudowany, aby był prosty",
+        "body": "Jeden szybki dziennik dziennie. Jasne wizualne postępy. Bez rozpraszaczy, bez szumu."
+      }
+    ]
   },
   "pt": {
     "appName": "Coachly",
@@ -1970,7 +2597,64 @@ const strings = {
     "myDiary": "O meu diário",
     "myWorkouts": "Os meus treinos",
     "logToday": "REGISTAR HOJE",
-    "editToday": "EDITAR HOJE"
+    "editToday": "EDITAR HOJE",
+    "termsTitle": "Termos e condições",
+    "termsUpdated": "Última atualização: 24 de abril de 2026",
+    "termsSections": [
+      {
+        "title": "1. Aceitação dos termos",
+        "body": "[PLACEHOLDER] Ao criar uma conta e usar o Coachly, concordas com estes termos e condições. Se não concordares, não utilizes o serviço."
+      },
+      {
+        "title": "2. Contas de utilizador",
+        "body": "[PLACEHOLDER] És responsável por manter o teu PIN confidencial. Concordas em fornecer informações precisas durante o registo."
+      },
+      {
+        "title": "3. Aviso de saúde e fitness",
+        "body": "[PLACEHOLDER] O Coachly é uma ferramenta de acompanhamento, não um serviço médico. Consulta um profissional qualificado antes de iniciar qualquer programa de exercício. Não somos responsáveis por lesões, doenças ou outros danos resultantes do uso da aplicação."
+      },
+      {
+        "title": "4. Os teus dados",
+        "body": "[PLACEHOLDER] Os dados que registas são armazenados em segurança e utilizados para mostrar o teu progresso. Consulta a política de privacidade para detalhes sobre recolha, armazenamento e partilha."
+      },
+      {
+        "title": "5. Relações de coaching",
+        "body": "[PLACEHOLDER] Se te conectares com um treinador, dados selecionados são partilhados com ele. Podes revogar o acesso a qualquer momento."
+      },
+      {
+        "title": "6. Limitação de responsabilidade",
+        "body": "[PLACEHOLDER] O Coachly é fornecido \"tal como está\" sem qualquer garantia. Na máxima extensão permitida pela lei, declinamos toda a responsabilidade por danos resultantes do uso do serviço."
+      },
+      {
+        "title": "7. Alterações a estes termos",
+        "body": "[PLACEHOLDER] Podemos atualizar estes termos de tempos a tempos. O uso continuado após alterações constitui aceitação dos termos atualizados."
+      },
+      {
+        "title": "8. Contacto",
+        "body": "[PLACEHOLDER] Perguntas? Contacta-nos em support@coachly.app."
+      }
+    ],
+    "aboutTitle": "Sobre o Coachly",
+    "aboutTagline": "Acompanha o teu treino. Compreende o teu progresso.",
+    "aboutVersion": "Versão",
+    "aboutSections": [
+      {
+        "title": "O que é o Coachly?",
+        "body": "O Coachly ajuda-te a acompanhar treinos, bem-estar e nutrição num só lugar. Regista como correu cada dia — descanso ou treino, esforço, humor, energia, sono, dores musculares — e vê tendências ao longo do tempo."
+      },
+      {
+        "title": "Concebido para clientes e treinadores",
+        "body": "Usa o Coachly sozinho, ou partilha o teu progresso com um treinador. Ele pode acompanhar, identificar padrões e ajudar-te a manter o rumo."
+      },
+      {
+        "title": "Os teus dados, o teu controlo",
+        "body": "O teu registo é privado por defeito. Os treinadores só veem o que escolhes partilhar, e podes revogar o acesso a qualquer momento."
+      },
+      {
+        "title": "Concebido para ser simples",
+        "body": "Um registo diário rápido. Progresso visual claro. Sem distrações, sem ruído."
+      }
+    ]
   }
 };
 

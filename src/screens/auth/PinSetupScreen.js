@@ -160,7 +160,6 @@ export default function PinSetupScreen({ navigation, route }) {
         caretHidden
         contextMenuHidden
         textContentType="oneTimeCode"
-        editable={!checking}
       />
     </Pressable>
   );

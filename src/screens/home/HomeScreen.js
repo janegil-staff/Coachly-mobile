@@ -3,7 +3,7 @@
 // pinned Log Today button. No data context yet — stats show placeholders until
 // a LogsContext is wired up.
 
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import Svg, { Path } from "react-native-svg";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
+import { useLogs } from "../../context/LogsContext";
 import { FontSize, Spacing, Radius } from "../../constants/theme";
 
 const { width } = Dimensions.get("window");
@@ -55,16 +56,52 @@ export default function HomeScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useLang();
   const insets = useSafeAreaInsets();
+  const { logs, fetchLogs } = useLogs();
 
-  // TODO: wire up a LogsContext later — for now, placeholders.
-  const stats = {
-    sessionsLogged: 0,
-    avgEffort: "–",
-    avgMood: "–",
-    avgEnergy: "–",
-    topWorkout: "–",
-  };
-  const hasTodayLog = false;
+  useEffect(() => {
+    if (fetchLogs) fetchLogs();
+  }, [fetchLogs]);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const _thirty = new Date();
+  _thirty.setDate(_thirty.getDate() - 30);
+  const cutoffStr = _thirty.toISOString().slice(0, 10);
+
+  const stats = useMemo(() => {
+    const recent = (logs || []).filter((l) => l && l.date && l.date >= cutoffStr);
+    const count = recent.length;
+
+    const avg = (key, skipRest) => {
+      const vals = recent
+        .filter((l) => (skipRest ? !l.isRestDay : true))
+        .map((l) => l && l[key])
+        .filter((v) => typeof v === "number" && v >= 1 && v <= 5);
+      if (!vals.length) return "–";
+      return (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(1);
+    };
+
+    const typeCounts = {};
+    recent.forEach((l) => {
+      (l.workouts || []).forEach((w) => {
+        if (w && w.type) typeCounts[w.type] = (typeCounts[w.type] || 0) + 1;
+      });
+    });
+    const sorted = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+    const topType = sorted.length ? sorted[0][0] : null;
+    const topWorkout = topType
+      ? (t["category" + topType.charAt(0).toUpperCase() + topType.slice(1)] || topType)
+      : "–";
+
+    return {
+      sessionsLogged: count,
+      avgEffort: avg("effort", true),
+      avgMood: avg("mood", false),
+      avgEnergy: avg("energy", false),
+      topWorkout: topWorkout,
+    };
+  }, [logs, cutoffStr, t]);
+
+  const hasTodayLog = (logs || []).some((l) => l && l.date === today);
 
   const statRows = [
     { labelKey: "sessionsLogged", value: stats.sessionsLogged, icon: "calendar-outline" },
