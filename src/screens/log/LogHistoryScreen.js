@@ -167,6 +167,7 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
               const bg = bucket != null ? scoreColor(bucket) : undefined;
               const highSoreness = log?.soreness >= 4;
               const isRest = log?.isRestDay === true;
+              const hasNote = !!log?.note?.trim();
 
               return (
                 <TouchableOpacity
@@ -199,6 +200,11 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
                       </View>
                     )}
                     {highSoreness && <Text style={cal.soreIcon}>🔥</Text>}
+                    {hasNote && (
+                      <View style={cal.noteIcon}>
+                        <Ionicons name="chatbubble-ellipses" size={10} color="#fff" />
+                      </View>
+                    )}
                   </View>
                 </TouchableOpacity>
               );
@@ -343,6 +349,17 @@ const cal = StyleSheet.create({
     justifyContent: "center",
   },
   soreIcon: { position: "absolute", bottom: -6, left: -6, fontSize: 13 },
+  noteIcon: {
+    position: "absolute",
+    bottom: -6,
+    right: -6,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#4A7AB5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   legendRow: {
     flexDirection: "row",
     flexWrap: "wrap",
