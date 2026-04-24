@@ -21,6 +21,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
 import { useLogs } from "../../context/LogsContext";
 import { FontSize, Spacing, Radius } from "../../constants/theme";
+import AdviceBulbButton from "../../components/AdviceBulbButton";
 
 const { width } = Dimensions.get("window");
 
@@ -135,7 +136,10 @@ export default function HomeScreen({ navigation }) {
           <Text style={s.appName}>{t.appName}</Text>
           <Text style={s.tagline}>{t.tagline}</Text>
         </View>
-        <View style={s.headerBtn} />
+        <AdviceBulbButton
+          onPress={() => navigation.navigate("Advice")}
+          color="#fff"
+        />
       </View>
 
       {/* Scroll */}
