@@ -23,7 +23,7 @@ import { useAuth } from "../../context/AuthContext";
 import { authApi } from "../../services/api";
 import { FontSize, Spacing, Radius } from "../../constants/theme";
 import Rating from "../../components/Rating";
-import { computeDailyScore, scoreColor } from "../../utils/score";
+import { computeDailyScore, scoreColor, bucketScore, describeWorkoutScore } from "../../utils/score";
 
 const WORKOUT_TYPES = ["strength", "cardio", "mobility", "recovery", "other"];
 
@@ -164,9 +164,22 @@ export default function LogEntryScreen({ navigation, route }) {
         }
       }
       const backendScore = res && res.score && res.score.compositeScore;
-      const msg = backendScore != null
-        ? "Today’s score: " + backendScore + "/100"
-        : "Today’s score: " + (score != null ? score : "–");
+            const bucket = bucketScore(backendScore);
+            const desc = describeWorkoutScore({
+              isRestDay: isRestDay,
+              workouts: workouts,
+              effort: effort,
+            });
+            const restLabel = t.restDay ?? "Rest day";
+            const minutesLabel = t.minutes ?? "min";
+            const ptsLabel = t.points ?? "pts";
+            const line1 = isRestDay
+              ? restLabel
+              : (desc.minutes + " " + minutesLabel + " • " + desc.score + " " + ptsLabel);
+            const line2 = bucket != null
+              ? ((t.scoreLabel ?? "Score") + ": " + bucket + "/5")
+              : null;
+            const msg = line2 ? (line1 + "\n" + line2) : line1;
       Alert.alert("Saved", msg, [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
