@@ -18,6 +18,9 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
+import { useLogs } from "../../context/LogsContext";
+import { useAuth } from "../../context/AuthContext";
+import { authApi } from "../../services/api";
 import { FontSize, Spacing, Radius } from "../../constants/theme";
 import Rating from "../../components/Rating";
 import { computeDailyScore, scoreColor } from "../../utils/score";
@@ -28,10 +31,15 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function LogEntryScreen({ navigation }) {
+export default function LogEntryScreen({ navigation, route }) {
+  // Date for this entry: from route params if editing, else today
+  const entryDate = route?.params?.date ?? today();
+
   const { theme } = useTheme();
   const { t } = useLang();
   const insets = useSafeAreaInsets();
+  const { saveLog, logs, getLogForDate } = useLogs();
+  const { user, updateUser } = useAuth();
   const s = makeStyles(theme);
 
   const [step, setStep] = useState(1);
@@ -46,9 +54,40 @@ export default function LogEntryScreen({ navigation }) {
   const [sleep, setSleep] = useState(3);
   const [soreness, setSoreness] = useState(2);
   const [notes, setNotes] = useState("");
+  const [weightKg, setWeightKg] = useState("");
   const [saving, setSaving] = useState(false);
+  // Prefill fields from existing log for this date (edit mode)
+  React.useEffect(() => {
+    const existing = getLogForDate ? getLogForDate(entryDate) : null;
+    if (!existing) return;
+    if (typeof existing.isRestDay === "boolean") setIsRestDay(existing.isRestDay);
+    if (Array.isArray(existing.workouts)) {
+      setWorkouts(
+        existing.workouts.map((w) => ({
+          type: w.type,
+          durationMinutes: w.durationMinutes ?? 0,
+        }))
+      );
+    }
+    if (existing.effort != null) setEffort(existing.effort);
+    if (existing.mood != null) setMood(existing.mood);
+    if (existing.energy != null) setEnergy(existing.energy);
+    if (existing.sleepQuality != null) setSleep(existing.sleepQuality);
+    if (existing.soreness != null) setSoreness(existing.soreness);
+    if (existing.note != null) setNotes(existing.note);
+    if (existing.weightKg != null) setWeightKg(String(existing.weightKg));
+  }, [entryDate]);
 
-  const totalSteps = isRestDay ? 3 : 4;
+  // Prefill weight from the user's clientProfile (current weight).
+  // Runs on mount and any time the profile value changes from the server.
+  React.useEffect(() => {
+    const profileWeight = user?.clientProfile?.weightKg;
+    if (profileWeight != null && profileWeight > 0) {
+      setWeightKg(String(profileWeight));
+    }
+  }, [user?.clientProfile?.weightKg]);
+
+  const totalSteps = isRestDay ? 4 : 5;
   const displayStep = isRestDay ? (step === 1 ? 1 : step - 1) : step;
 
   const totalDuration = workouts.reduce((sum, w) => sum + (w.durationMinutes || 0), 0);
@@ -84,7 +123,7 @@ export default function LogEntryScreen({ navigation }) {
   const goNext = () => {
     if (step === 1 && isRestDay) {
       setStep(3);
-    } else if (step < 4) {
+    } else if (step < 5) {
       setStep(step + 1);
     }
   };
@@ -101,26 +140,38 @@ export default function LogEntryScreen({ navigation }) {
 
   const save = async () => {
     setSaving(true);
-    const entry = {
-      date: today(),
+    const payload = {
+      date: entryDate,
       isRestDay,
       workouts: isRestDay ? [] : workouts,
-      totalDuration: isRestDay ? 0 : totalDuration,
       effort: isRestDay ? null : effort,
       mood,
       energy,
-      sleep,
       soreness,
-      notes: notes.trim(),
-      score,
+      sleepQuality: sleep,
+      weightKg: weightKg ? parseFloat(weightKg) : null,
+      note: notes.trim(),
     };
     try {
-      // TODO: wire to backend
-      Alert.alert("Saved", `Today's score: ${score ?? "–"}`, [
+      const res = await saveLog(payload);
+      // Cascade weight to client profile so it becomes the new current weight
+      if (weightKg) {
+        try {
+          const updated = await authApi.updateProfile({ weightKg: parseFloat(weightKg) });
+          if (updated) updateUser(updated);
+        } catch (_) {
+          // non-fatal — log entry already saved
+        }
+      }
+      const backendScore = res && res.score && res.score.compositeScore;
+      const msg = backendScore != null
+        ? "Today’s score: " + backendScore + "/100"
+        : "Today’s score: " + (score != null ? score : "–");
+      Alert.alert("Saved", msg, [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (e) {
-      Alert.alert("Error", e?.message ?? "Could not save");
+      Alert.alert("Error", (e && e.message) || "Could not save");
     } finally {
       setSaving(false);
     }
@@ -389,8 +440,47 @@ export default function LogEntryScreen({ navigation }) {
             </>
           )}
 
-          {/* Step 4 — Notes + review */}
+          {/* Step 4 — Weight */}
           {step === 4 && (
+            <>
+              <Text style={s.stepTitle}>{t.weightTitle ?? "Weight"}</Text>
+              <Text style={s.stepHint}>
+                {t.weightHint ?? "Optional — leave blank to skip today."}
+              </Text>
+
+              <View style={s.weightInputWrap}>
+                <TextInput
+                  value={weightKg}
+                  onChangeText={(v) => {
+                    // Allow digits + one decimal point
+                    const cleaned = v.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+                    setWeightKg(cleaned);
+                  }}
+                  keyboardType="decimal-pad"
+                  placeholder="—"
+                  placeholderTextColor={theme.textMuted}
+                  style={s.weightInput}
+                  maxLength={6}
+                />
+                <Text style={s.weightUnit}>kg</Text>
+              </View>
+
+              {!weightKg && (
+                <TouchableOpacity
+                  style={s.skipBtn}
+                  onPress={() => setStep(5)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={s.skipBtnText}>
+                    {t.skipWeight ?? "Skip — don't log weight today"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+
+          {/* Step 5 — Notes + review */}
+          {step === 5 && (
             <>
               <Text style={s.stepTitle}>{t.notes ?? "Notes"}</Text>
               <TextInput
@@ -406,7 +496,7 @@ export default function LogEntryScreen({ navigation }) {
 
               <View style={s.summaryCard}>
                 <Text style={s.summaryTitle}>Summary</Text>
-                <SummaryRow label="Date" value={today()} theme={theme} />
+                <SummaryRow label="Date" value={entryDate} theme={theme} />
                 <SummaryRow
                   label="Type"
                   value={isRestDay ? "Rest day" : "Training"}
@@ -436,6 +526,9 @@ export default function LogEntryScreen({ navigation }) {
                 <SummaryRow label="Energy" value={energy} theme={theme} />
                 <SummaryRow label="Sleep" value={sleep} theme={theme} />
                 <SummaryRow label="Soreness" value={soreness} theme={theme} />
+                {weightKg && (
+                  <SummaryRow label="Weight" value={`${weightKg} kg`} theme={theme} />
+                )}
                 <View style={s.summaryDivider} />
                 <SummaryRow
                   label="Score"
@@ -454,7 +547,7 @@ export default function LogEntryScreen({ navigation }) {
 
       {/* Footer button */}
       <View style={[s.footer, { paddingBottom: insets.bottom + 16 }]}>
-        {step < 4 ? (
+        {step < 5 ? (
           <TouchableOpacity
             style={[s.primaryBtn, !canGoNext() && s.primaryBtnDisabled]}
             onPress={canGoNext() ? goNext : undefined}
@@ -664,6 +757,37 @@ function makeStyles(theme) {
     },
     scoreValue: { fontSize: 56, fontWeight: "900", marginTop: 4 },
 
+    weightInputWrap: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "center",
+      gap: 12,
+      marginTop: Spacing.xl,
+      marginBottom: Spacing.xl,
+    },
+    weightInput: {
+      color: theme.accent,
+      fontSize: 56,
+      fontWeight: "800",
+      textAlign: "center",
+      minWidth: 160,
+      padding: 0,
+    },
+    weightUnit: {
+      color: theme.textSecondary,
+      fontSize: FontSize.lg,
+      fontWeight: "600",
+    },
+    skipBtn: {
+      alignSelf: "center",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+    },
+    skipBtnText: {
+      color: theme.textMuted,
+      fontSize: FontSize.sm,
+      textDecorationLine: "underline",
+    },
     notesInput: {
       minHeight: 120,
       borderWidth: 1.5,

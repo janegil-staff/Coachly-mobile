@@ -1,6 +1,3 @@
-// src/context/AuthContext.js
-// Recover-style auth: PIN as credential, local-first PIN verification.
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import { authApi } from "../services/api";
@@ -13,7 +10,6 @@ export function AuthProvider({ children }) {
   const [pinVerified, setPinVerified] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
 
-  // Hydrate on mount: if there's a stored token, fetch the user.
   useEffect(() => {
     authApi
       .getMe()
@@ -22,12 +18,6 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  /**
-   * Login with email + PIN.
-   * If the same email has a stored PIN locally, validate the PIN against
-   * SecureStore first (no network call on success). Otherwise, fall back
-   * to the backend.
-   */
   const login = async (email, pin) => {
     const cleanEmail = email.trim().toLowerCase();
     const storedPin = await SecureStore.getItemAsync("userPin");
@@ -35,7 +25,6 @@ export function AuthProvider({ children }) {
     const cleanStored = (storedEmail ?? "").trim().toLowerCase();
 
     if (storedPin && cleanStored && cleanEmail === cleanStored) {
-      // Same email — validate PIN locally first
       if (pin !== storedPin) throw new Error("Incorrect PIN");
       const u = await authApi.getMe();
       if (u) {
@@ -43,10 +32,8 @@ export function AuthProvider({ children }) {
         setUser(u);
         return u;
       }
-      // Token invalid → fall through to server login
     }
 
-    // Different email or no stored session — go to server
     const u = await authApi.login({ email: cleanEmail, password: pin });
     await SecureStore.setItemAsync("userPin", pin);
     await SecureStore.setItemAsync("userEmail", cleanEmail);
@@ -55,49 +42,52 @@ export function AuthProvider({ children }) {
     return u;
   };
 
-  /**
-   * Register a new account. Called from RegisterScreen with the full payload
-   * (email, password=pin, name, language, age, gender, height, weight).
-   */
-  const register = async (data) => {
-    const u = await authApi.register(data);
-    const cleanEmail = data.email.trim().toLowerCase();
+  const register = async ({
+    email,
+    password,
+    name,
+    language,
+    age,
+    gender,
+    height,
+    weight,
+  }) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const u = await authApi.register({
+      email: cleanEmail,
+      password,
+      name,
+      language,
+      role: "client",
+      age: age != null ? Number(age) : undefined,
+      gender,
+      heightCm: height != null ? Number(height) : undefined,
+      weightKg: weight != null ? Number(weight) : undefined,
+    });
     await SecureStore.setItemAsync("userEmail", cleanEmail);
-    await SecureStore.setItemAsync("userPin", data.password);
+    await SecureStore.setItemAsync("userPin", password);
     setIsNewUser(true);
     setPinVerified(true);
     setUser(u);
     return u;
   };
 
-  /**
-   * Save a PIN that was set after registration (e.g. from PIN setup in Profile).
-   */
   const savePin = async (pin) => {
     await SecureStore.setItemAsync("userPin", pin);
-    const email =
-      user?.email ?? (await SecureStore.getItemAsync("userEmail"));
-    if (email) {
+    const email = user?.email ?? (await SecureStore.getItemAsync("userEmail"));
+    if (email)
       await SecureStore.setItemAsync("userEmail", email.trim().toLowerCase());
-    }
   };
 
   const updateUser = (data) =>
     setUser((prev) => (prev ? { ...prev, ...data } : prev));
 
-  /**
-   * Sign out but keep the stored PIN (so user can PIN back in next launch
-   * with the same email).
-   */
   const logout = async () => {
     await authApi.logout();
     setPinVerified(false);
     setUser(null);
   };
 
-  /**
-   * Full sign-out — clears email and PIN too (used for "Forgot PIN").
-   */
   const logoutAndClearPin = async () => {
     await authApi.logout();
     await SecureStore.deleteItemAsync("userPin").catch(() => {});

@@ -1,6 +1,7 @@
 // src/screens/auth/PinVerifyScreen.js
-// Shown on app relaunch when a PIN is stored locally.
-// Uses the system numeric keyboard (hidden TextInput driving 4 dots).
+// Shown on app launch when a PIN is stored locally.
+// System numeric keyboard drives a hidden input (4 dots visible).
+// Back button logs out — user returns to Login.
 
 import React, { useState, useRef, useEffect } from "react";
 import {
@@ -13,6 +14,7 @@ import {
   Keyboard,
   Pressable,
   Alert,
+  StatusBar,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,7 +23,7 @@ import * as SecureStore from "expo-secure-store";
 import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
 import { useAuth } from "../../context/AuthContext";
-import { FontSize } from "../../constants/theme";
+import { FontSize, Spacing } from "../../constants/theme";
 
 const PIN_KEY = "userPin";
 
@@ -64,10 +66,11 @@ export default function PinVerifyScreen({ onSuccess, onFallback }) {
     }
   };
 
-  const handleForgot = () => {
+  const handleBack = async () => {
     Alert.alert(
-      t.forgotPin ?? "Forgot your PIN?",
-      "You'll be signed out and need to sign in again.",
+      t.backToLogin ?? "Back to login?",
+      t.backToLoginBody ??
+        "You will be signed out and need to sign in again.",
       [
         { text: t.cancel ?? "Cancel", style: "cancel" },
         {
@@ -82,89 +85,155 @@ export default function PinVerifyScreen({ onSuccess, onFallback }) {
     );
   };
 
-  const s = makeStyles(theme);
+  const handleForgot = () => {
+    Alert.alert(
+      t.forgotPin ?? "Forgot your PIN?",
+      t.forgotPinBody ??
+        "You will be signed out and need to sign in again.",
+      [
+        { text: t.cancel ?? "Cancel", style: "cancel" },
+        {
+          text: t.confirm ?? "Confirm",
+          style: "destructive",
+          onPress: async () => {
+            if (logoutAndClearPin) await logoutAndClearPin();
+            onFallback?.();
+          },
+        },
+      ]
+    );
+  };
+
+  const s = makeStyles(theme, insets);
 
   return (
-    <Pressable
-      style={[
-        s.bg,
-        { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 },
-      ]}
-      onPress={() => inputRef.current?.focus()}
-    >
-      <View style={s.logoWrap}>
-        <Image
-          source={require("../../../assets/images/logo.png")}
-          style={s.logo}
-          resizeMode="contain"
-        />
-        <Text style={[s.wordmark, { color: theme.accent }]}>COACHLY</Text>
+    <View style={s.bg}>
+      {/* Blue status-bar area — extends the header color up into the notch */}
+      <StatusBar barStyle="light-content" backgroundColor={theme.accent} />
+      <View style={s.statusFill} />
+
+      {/* Blue header with back button */}
+      <View style={s.header}>
+        <TouchableOpacity onPress={handleBack} hitSlop={16} style={s.backBtn}>
+          <Ionicons name="chevron-back" size={26} color="#fff" />
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>{t.enterPin ?? "Enter PIN"}</Text>
+        <View style={s.backBtn} />
       </View>
 
-      <Text style={[s.title, { color: theme.text }]}>
-        {t.pinInputTitle ?? "Enter your PIN"}
-      </Text>
-      {!!user?.name && (
-        <Text style={[s.subtitle, { color: theme.textSecondary }]}>
-          {user.name}
-        </Text>
-      )}
-
-      <TouchableOpacity
-        style={s.dotsRow}
+      {/* Body */}
+      <Pressable
+        style={s.body}
         onPress={() => inputRef.current?.focus()}
-        activeOpacity={1}
       >
-        {[0, 1, 2, 3].map((i) => (
-          <View
-            key={i}
-            style={[
-              s.dot,
-              {
-                backgroundColor:
-                  i < pin.length ? theme.accent : "transparent",
-                borderColor: theme.border,
-              },
-            ]}
+        <View style={s.logoWrap}>
+          <Image
+            source={require("../../../assets/images/logo.png")}
+            style={s.logo}
+            resizeMode="contain"
           />
-        ))}
-      </TouchableOpacity>
+          <Text style={[s.wordmark, { color: theme.accent }]}>COACHLY</Text>
+        </View>
 
-      <View style={s.errorRow}>
-        {!!error && <Text style={s.error}>{error}</Text>}
-      </View>
-
-      <TouchableOpacity onPress={handleForgot} style={s.forgotRow} hitSlop={16}>
-        <Text style={[s.forgotText, { color: theme.accent }]}>
-          {t.forgotPin ?? "Forgot PIN?"}
+        <Text style={[s.title, { color: theme.text }]}>
+          {t.pinInputTitle ?? "Enter your PIN"}
         </Text>
-      </TouchableOpacity>
+        {!!user?.name && (
+          <Text style={[s.subtitle, { color: theme.textSecondary }]}>
+            {user.name}
+          </Text>
+        )}
 
-      <TextInput
-        ref={inputRef}
-        value={pin}
-        onChangeText={handleChange}
-        keyboardType="number-pad"
-        maxLength={4}
-        style={s.hidden}
-        autoFocus
-        caretHidden
-        contextMenuHidden
-        textContentType="oneTimeCode"
-        editable={!checking}
-      />
-    </Pressable>
+        <TouchableOpacity
+          style={s.dotsRow}
+          onPress={() => inputRef.current?.focus()}
+          activeOpacity={1}
+        >
+          {[0, 1, 2, 3].map((i) => (
+            <View
+              key={i}
+              style={[
+                s.dot,
+                {
+                  backgroundColor:
+                    i < pin.length ? theme.accent : "transparent",
+                  borderColor: theme.border,
+                },
+              ]}
+            />
+          ))}
+        </TouchableOpacity>
+
+        <View style={s.errorRow}>
+          {!!error && <Text style={s.error}>{error}</Text>}
+        </View>
+
+        <TouchableOpacity
+          onPress={handleForgot}
+          style={s.forgotRow}
+          hitSlop={16}
+        >
+          <Text style={[s.forgotText, { color: theme.accent }]}>
+            {t.forgotPin ?? "Forgot PIN?"}
+          </Text>
+        </TouchableOpacity>
+
+        <TextInput
+          ref={inputRef}
+          value={pin}
+          onChangeText={handleChange}
+          keyboardType="number-pad"
+          maxLength={4}
+          style={s.hidden}
+          autoFocus
+          caretHidden
+          contextMenuHidden
+          textContentType="oneTimeCode"
+          editable={!checking}
+        />
+      </Pressable>
+    </View>
   );
 }
 
-function makeStyles(theme) {
+function makeStyles(theme, insets) {
   return StyleSheet.create({
-    bg: {
+    bg: { flex: 1, backgroundColor: theme.bg },
+
+    // Fills the status-bar area with the header color (extends behind notch)
+    statusFill: {
+      height: insets.top,
+      backgroundColor: theme.accent,
+    },
+
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 8,
+      paddingBottom: Spacing.sm,
+      backgroundColor: theme.accent,
+    },
+    backBtn: {
+      width: 44,
+      height: 44,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: {
+      color: "#fff",
+      fontSize: FontSize.md,
+      fontWeight: "700",
+      letterSpacing: 0.5,
+    },
+
+    body: {
       flex: 1,
-      backgroundColor: theme.bg,
       alignItems: "center",
       paddingHorizontal: 24,
+      paddingBottom: insets.bottom + 16,
     },
+
     logoWrap: { alignItems: "center", marginTop: 32, marginBottom: 28 },
     logo: { width: 90, height: 90, borderRadius: 18 },
     wordmark: {

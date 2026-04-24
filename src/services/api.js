@@ -1,15 +1,18 @@
 // src/services/api.js
-// Coachly backend client. Based on Recover's api.js pattern.
+// Coachly backend client — no success-wrapper.
 
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ??
-  "https://monkfish-app-qjb62.ondigitalocean.app";
+  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5050";
+
+const TOKEN_KEY = "accessToken";
+const REFRESH_KEY = "refreshToken";
+const USER_KEY = "user";
 
 async function getToken() {
-  return SecureStore.getItemAsync("token");
+  return SecureStore.getItemAsync(TOKEN_KEY);
 }
 
 async function request(method, path, body) {
@@ -22,55 +25,72 @@ async function request(method, path, body) {
     },
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   });
-  const json = await res.json();
-  if (!json.success) throw new Error(json.message ?? "Request failed");
-  return json.data ?? json;
+
+  let json = null;
+  try {
+    json = await res.json();
+  } catch {}
+
+  if (!res.ok) {
+    const message = json?.error ?? `Request failed (${res.status})`;
+    const err = new Error(message);
+    err.status = res.status;
+    err.code = json?.code;
+    throw err;
+  }
+  return json;
 }
 
-async function saveTokens(data) {
-  if (data.token) await SecureStore.setItemAsync("token", data.token);
-  if (data.refreshToken)
-    await SecureStore.setItemAsync("refreshToken", data.refreshToken);
-  if (data.user) await AsyncStorage.setItem("user", JSON.stringify(data.user));
+async function saveSession(data) {
+  if (data?.accessToken)
+    await SecureStore.setItemAsync(TOKEN_KEY, data.accessToken);
+  if (data?.refreshToken)
+    await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken);
+  if (data?.user)
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.user));
 }
 
 async function clearSession() {
-  await SecureStore.deleteItemAsync("token").catch(() => {});
-  await SecureStore.deleteItemAsync("refreshToken").catch(() => {});
-  await AsyncStorage.removeItem("user").catch(() => {});
+  await SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
+  await SecureStore.deleteItemAsync(REFRESH_KEY).catch(() => {});
+  await AsyncStorage.removeItem(USER_KEY).catch(() => {});
 }
 
-// ── authApi ───────────────────────────────────────────────────────────────
 export const authApi = {
+  checkEmail: async (email) => {
+    const data = await request("POST", "/api/auth/check-email", { email });
+    return { exists: !!data?.exists };
+  },
+
   register: async ({
     email,
     password,
     name,
     language,
+    role = "client",
     age,
     gender,
-    height,
-    weight,
+    heightCm,
+    weightKg,
   }) => {
-    if (!email) throw new Error("Email is required");
-    const payload = {
+    const data = await request("POST", "/api/auth/signup", {
       email,
       password,
-      name: name ?? (typeof email === "string" ? email.split("@")[0] : "") ?? "",
+      name: name ?? email?.split("@")[0] ?? "",
       language: language ?? "en",
-      age: age ?? 0,
-      gender: gender ?? "other",
-      height: height ?? 0,
-      weight: weight ?? 0,
-    };
-    const data = await request("POST", "/api/auth/register", payload);
-    await saveTokens(data);
+      role,
+      ...(age != null ? { age } : {}),
+      ...(gender ? { gender } : {}),
+      ...(heightCm != null ? { heightCm } : {}),
+      ...(weightKg != null ? { weightKg } : {}),
+    });
+    await saveSession(data);
     return data.user;
   },
 
   login: async ({ email, password }) => {
     const data = await request("POST", "/api/auth/login", { email, password });
-    await saveTokens(data);
+    await saveSession(data);
     return data.user;
   },
 
@@ -78,48 +98,65 @@ export const authApi = {
     const token = await getToken();
     if (!token) return null;
     try {
-      return await request("GET", "/api/auth/me");
-    } catch {
-      return null;
+      const data = await request("GET", "/api/auth/me");
+      return data?.user ?? data;
+    } catch (e) {
+      if (e.status === 401) return null;
+      throw e;
     }
   },
 
   logout: async () => {
+    try {
+      await request("POST", "/api/auth/logout");
+    } catch {}
     await clearSession();
+  },
+
+  updateProfile: async ({ weightKg }) => {
+    const data = await request("PATCH", "/api/auth/me", { weightKg });
+    return data?.user ?? data;
   },
 
   deleteAccount: async () => {
-    await request("DELETE", "/api/auth/account");
+    await request("DELETE", "/api/auth/me");
     await clearSession();
-  },
-
-  requestPasswordReset: async (email) =>
-    request("POST", "/api/auth/forgot-password", { email }),
-
-  verifyResetCode: async (email, code) =>
-    request("POST", "/api/auth/forgot-password/verify", { email, code }),
-
-  resetPassword: async (email, code, newPassword) =>
-    request("POST", "/api/auth/forgot-password/reset", {
-      email,
-      code,
-      newPassword,
-    }),
-
-  checkEmail: async (email) => {
-    try {
-      await request("POST", "/api/auth/check-email", { email });
-      return { exists: false };
-    } catch (e) {
-      if (e.message?.toLowerCase().includes("already")) return { exists: true };
-      throw e;
-    }
   },
 };
 
-// Keep setAuthToken available for older imports that might still reference it
-export function setAuthToken(_token) {
-  // Legacy no-op: token is read from SecureStore on each request().
-}
+export const logsApi = {
+  upsert: async (entry) => request("POST", "/api/logs", entry),
+  list: async ({ from, to } = {}) => {
+    const qs = [];
+    if (from) qs.push(`from=${from}`);
+    if (to) qs.push(`to=${to}`);
+    const suffix = qs.length ? `?${qs.join("&")}` : "";
+    const data = await request("GET", `/api/logs${suffix}`);
+    return data?.logs ?? [];
+  },
+  getByDate: async (date) => {
+    try {
+      const data = await request("GET", `/api/logs/${date}`);
+      return data?.entry ?? null;
+    } catch (e) {
+      if (e.status === 404) return null;
+      throw e;
+    }
+  },
+  remove: async (date) => request("DELETE", `/api/logs/${date}`),
+};
 
-export default { authApi, setAuthToken };
+export const scoresApi = {
+  list: async ({ from, to } = {}) => {
+    const qs = [];
+    if (from) qs.push(`from=${from}`);
+    if (to) qs.push(`to=${to}`);
+    const suffix = qs.length ? `?${qs.join("&")}` : "";
+    const data = await request("GET", `/api/scores${suffix}`);
+    return data?.scores ?? [];
+  },
+};
+
+export function setAuthToken(_token) {}
+
+export default { authApi, logsApi, scoresApi, setAuthToken };
