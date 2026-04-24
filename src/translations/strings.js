@@ -274,7 +274,14 @@ const strings = {
     "advice_v2_title": "Training is cheaper than therapy",
     "advice_v2_body": "Lifting and cardio both reliably reduce anxiety and depression, improve sleep, and boost self-efficacy. You're not just building a body — you're maintaining a brain.",
     "advice_v3_title": "Your future self is watching",
-    "advice_v3_body": "The version of you in 12 months will either thank or resent the version making choices today. Train with that person in mind. They want you to show up."
+    "advice_v3_body": "The version of you in 12 months will either thank or resent the version making choices today. Train with that person in mind. They want you to show up.",
+    "shareDescription": "Secure access to your training report on this website:",
+    "sharePersonalNotes": "Include personal notes",
+    "codeValidFor": "Valid for 10 minutes",
+    "codeExpired": "Code has expired",
+    "generateNewCode": "GENERATE NEW CODE",
+    "shareCodeMsg": "Your Coachly share code",
+    "errorGenCode": "Could not generate share code."
   },
   "no": {
     "appName": "Coachly",
@@ -546,7 +553,14 @@ const strings = {
     "advice_v2_title": "Trening er billigere enn terapi",
     "advice_v2_body": "Styrke og kardio reduserer pålitelig angst og depresjon, forbedrer søvn og øker selveffektivitet. Du bygger ikke bare en kropp — du vedlikeholder en hjerne.",
     "advice_v3_title": "Fremtidsselvet ditt ser på",
-    "advice_v3_body": "Versjonen av deg om 12 måneder vil enten takke eller beklage versjonen som tar valg i dag. Tren med den personen i tankene. De vil at du skal møte opp."
+    "advice_v3_body": "Versjonen av deg om 12 måneder vil enten takke eller beklage versjonen som tar valg i dag. Tren med den personen i tankene. De vil at du skal møte opp.",
+    "shareDescription": "Sikker tilgang til treningsrapporten din på denne nettsiden:",
+    "sharePersonalNotes": "Inkluder personlige notater",
+    "codeValidFor": "Gyldig i 10 minutter",
+    "codeExpired": "Koden er utløpt",
+    "generateNewCode": "GENERER NY KODE",
+    "shareCodeMsg": "Din Coachly-delingskode",
+    "errorGenCode": "Kunne ikke generere delingskode."
   },
   "nl": {
     "appName": "Coachly",
@@ -692,7 +706,7 @@ const strings = {
     "reminderOn": "On",
     "reminderOff": "Off",
     "notifications": "Notifications",
-    "shareData": "Gegevens delen",
+    "shareData": "Data delen",
     "version": "Version",
     "errNetwork": "No internet connection",
     "errServer": "Server error. Try again later.",
@@ -818,7 +832,14 @@ const strings = {
     "advice_v2_title": "Trainen is goedkoper dan therapie",
     "advice_v2_body": "Krachttraining en cardio verminderen betrouwbaar angst en depressie, verbeteren slaap en versterken zelfwerkzaamheid. Je bouwt niet alleen een lichaam — je onderhoudt een brein.",
     "advice_v3_title": "Je toekomstige zelf kijkt mee",
-    "advice_v3_body": "De jij over 12 maanden zal de jij van vandaag bedanken of betreuren. Train met die persoon in gedachten. Ze willen dat je opkomt dagen."
+    "advice_v3_body": "De jij over 12 maanden zal de jij van vandaag bedanken of betreuren. Train met die persoon in gedachten. Ze willen dat je opkomt dagen.",
+    "shareDescription": "Veilige toegang tot je trainingsrapport op deze website:",
+    "sharePersonalNotes": "Persoonlijke notities meesturen",
+    "codeValidFor": "Geldig voor 10 minuten",
+    "codeExpired": "Code is verlopen",
+    "generateNewCode": "NIEUWE CODE GENEREREN",
+    "shareCodeMsg": "Je Coachly-deelcode",
+    "errorGenCode": "Kan geen deelcode genereren."
   },
   "fr": {
     "appName": "Coachly",
@@ -1090,7 +1111,14 @@ const strings = {
     "advice_v2_title": "L'entraînement coûte moins cher que la thérapie",
     "advice_v2_body": "Musculation et cardio réduisent fiablement anxiété et dépression, améliorent le sommeil et l'auto-efficacité. Vous n'entretenez pas qu'un corps — aussi un cerveau.",
     "advice_v3_title": "Votre futur vous regarde",
-    "advice_v3_body": "La version de vous dans 12 mois remerciera ou en voudra à celle qui choisit aujourd'hui. Entraînez-vous en pensant à elle."
+    "advice_v3_body": "La version de vous dans 12 mois remerciera ou en voudra à celle qui choisit aujourd'hui. Entraînez-vous en pensant à elle.",
+    "shareDescription": "Accès sécurisé à votre rapport d'entraînement sur ce site:",
+    "sharePersonalNotes": "Inclure les notes personnelles",
+    "codeValidFor": "Valide 10 minutes",
+    "codeExpired": "Le code a expiré",
+    "generateNewCode": "GÉNÉRER UN NOUVEAU CODE",
+    "shareCodeMsg": "Votre code de partage Coachly",
+    "errorGenCode": "Impossible de générer le code."
   },
   "de": {
     "appName": "Coachly",
@@ -1362,7 +1390,14 @@ const strings = {
     "advice_v2_title": "Training ist billiger als Therapie",
     "advice_v2_body": "Krafttraining und Cardio reduzieren zuverlässig Angst und Depression, verbessern Schlaf und Selbstwirksamkeit. Du baust nicht nur Körper — auch Gehirn.",
     "advice_v3_title": "Dein zukünftiges Ich schaut zu",
-    "advice_v3_body": "Die Version von dir in 12 Monaten wird der heutigen danken oder sie bedauern. Trainiere mit dieser Person im Kopf."
+    "advice_v3_body": "Die Version von dir in 12 Monaten wird der heutigen danken oder sie bedauern. Trainiere mit dieser Person im Kopf.",
+    "shareDescription": "Sicherer Zugriff auf deinen Trainingsbericht auf dieser Website:",
+    "sharePersonalNotes": "Persönliche Notizen einschließen",
+    "codeValidFor": "10 Minuten gültig",
+    "codeExpired": "Code ist abgelaufen",
+    "generateNewCode": "NEUEN CODE GENERIEREN",
+    "shareCodeMsg": "Dein Coachly-Teilungscode",
+    "errorGenCode": "Code konnte nicht generiert werden."
   },
   "it": {
     "appName": "Coachly",
@@ -1634,7 +1669,14 @@ const strings = {
     "advice_v2_title": "Allenarsi costa meno della terapia",
     "advice_v2_body": "Forza e cardio riducono in modo affidabile ansia e depressione, migliorano il sonno e l'auto-efficacia. Non costruisci solo un corpo — mantieni un cervello.",
     "advice_v3_title": "Il tuo sé futuro sta guardando",
-    "advice_v3_body": "La versione di te tra 12 mesi ringrazierà o rimpiangerà quella di oggi. Allenati con quella persona in mente."
+    "advice_v3_body": "La versione di te tra 12 mesi ringrazierà o rimpiangerà quella di oggi. Allenati con quella persona in mente.",
+    "shareDescription": "Accesso sicuro al tuo report di allenamento su questo sito:",
+    "sharePersonalNotes": "Includi note personali",
+    "codeValidFor": "Valido 10 minuti",
+    "codeExpired": "Il codice è scaduto",
+    "generateNewCode": "GENERA NUOVO CODICE",
+    "shareCodeMsg": "Il tuo codice Coachly",
+    "errorGenCode": "Impossibile generare il codice."
   },
   "sv": {
     "appName": "Coachly",
@@ -1906,7 +1948,14 @@ const strings = {
     "advice_v2_title": "Träning är billigare än terapi",
     "advice_v2_body": "Styrka och kardio minskar pålitligt ångest och depression, förbättrar sömn och självtillit. Du bygger inte bara en kropp — också en hjärna.",
     "advice_v3_title": "Ditt framtida jag tittar på",
-    "advice_v3_body": "Versionen av dig om 12 månader kommer antingen tacka eller ångra dagens version. Träna med den personen i åtanke."
+    "advice_v3_body": "Versionen av dig om 12 månader kommer antingen tacka eller ångra dagens version. Träna med den personen i åtanke.",
+    "shareDescription": "Säker åtkomst till din träningsrapport på denna webbplats:",
+    "sharePersonalNotes": "Inkludera personliga anteckningar",
+    "codeValidFor": "Giltig i 10 minuter",
+    "codeExpired": "Koden har gått ut",
+    "generateNewCode": "GENERERA NY KOD",
+    "shareCodeMsg": "Din Coachly-delningskod",
+    "errorGenCode": "Kunde inte generera delningskod."
   },
   "da": {
     "appName": "Coachly",
@@ -2178,7 +2227,14 @@ const strings = {
     "advice_v2_title": "Træning er billigere end terapi",
     "advice_v2_body": "Styrke og kardio reducerer pålideligt angst og depression, forbedrer søvn og selveffektivitet. Du bygger ikke bare en krop — også en hjerne.",
     "advice_v3_title": "Dit fremtidige jeg ser med",
-    "advice_v3_body": "Versionen af dig om 12 måneder vil enten takke eller bebrejde dagens version. Træn med den person i tankerne."
+    "advice_v3_body": "Versionen af dig om 12 måneder vil enten takke eller bebrejde dagens version. Træn med den person i tankerne.",
+    "shareDescription": "Sikker adgang til din træningsrapport på denne hjemmeside:",
+    "sharePersonalNotes": "Inkluder personlige noter",
+    "codeValidFor": "Gyldig i 10 minutter",
+    "codeExpired": "Koden er udløbet",
+    "generateNewCode": "GENERER NY KODE",
+    "shareCodeMsg": "Din Coachly-delingskode",
+    "errorGenCode": "Kunne ikke generere delingskode."
   },
   "fi": {
     "appName": "Coachly",
@@ -2450,7 +2506,14 @@ const strings = {
     "advice_v2_title": "Harjoittelu on halvempaa kuin terapia",
     "advice_v2_body": "Voima ja aerobinen vähentävät luotettavasti ahdistusta ja masennusta, parantavat unta ja itsetehokkuutta. Rakennat kehoa ja aivoja.",
     "advice_v3_title": "Tulevaisuuden itsesi katselee",
-    "advice_v3_body": "Sinä 12 kuukauden päästä joko kiittää tai katuu tämän päivän versiota. Harjoittele sitä henkilöä mielessäsi."
+    "advice_v3_body": "Sinä 12 kuukauden päästä joko kiittää tai katuu tämän päivän versiota. Harjoittele sitä henkilöä mielessäsi.",
+    "shareDescription": "Turvallinen pääsy harjoitusraporttiisi tällä sivustolla:",
+    "sharePersonalNotes": "Sisällytä henkilökohtaiset muistiinpanot",
+    "codeValidFor": "Voimassa 10 minuuttia",
+    "codeExpired": "Koodi on vanhentunut",
+    "generateNewCode": "LUO UUSI KOODI",
+    "shareCodeMsg": "Coachly-jakokoodisi",
+    "errorGenCode": "Jakokoodin luonti epäonnistui."
   },
   "es": {
     "appName": "Coachly",
@@ -2722,7 +2785,14 @@ const strings = {
     "advice_v2_title": "Entrenar es más barato que la terapia",
     "advice_v2_body": "La fuerza y el cardio reducen de forma fiable ansiedad y depresión, mejoran el sueño y la autoeficacia. Construyes cuerpo y mantienes cerebro.",
     "advice_v3_title": "Tu yo futuro está mirando",
-    "advice_v3_body": "La versión de ti en 12 meses agradecerá o reprochará a la de hoy. Entrena con esa persona en mente."
+    "advice_v3_body": "La versión de ti en 12 meses agradecerá o reprochará a la de hoy. Entrena con esa persona en mente.",
+    "shareDescription": "Acceso seguro a tu informe de entrenamiento en este sitio:",
+    "sharePersonalNotes": "Incluir notas personales",
+    "codeValidFor": "Válido por 10 minutos",
+    "codeExpired": "El código ha expirado",
+    "generateNewCode": "GENERAR NUEVO CÓDIGO",
+    "shareCodeMsg": "Tu código Coachly",
+    "errorGenCode": "No se pudo generar el código."
   },
   "pl": {
     "appName": "Coachly",
@@ -2994,7 +3064,14 @@ const strings = {
     "advice_v2_title": "Trening jest tańszy niż terapia",
     "advice_v2_body": "Siła i cardio niezawodnie zmniejszają lęk i depresję, poprawiają sen i samoskuteczność. Nie tylko budujesz ciało — utrzymujesz mózg.",
     "advice_v3_title": "Twoje przyszłe ja patrzy",
-    "advice_v3_body": "Wersja ciebie za 12 miesięcy albo podziękuje, albo pożałuje dzisiejszej. Trenuj, mając tę osobę w myślach."
+    "advice_v3_body": "Wersja ciebie za 12 miesięcy albo podziękuje, albo pożałuje dzisiejszej. Trenuj, mając tę osobę w myślach.",
+    "shareDescription": "Bezpieczny dostęp do raportu treningowego na tej stronie:",
+    "sharePersonalNotes": "Dołącz notatki osobiste",
+    "codeValidFor": "Ważny 10 minut",
+    "codeExpired": "Kod wygasł",
+    "generateNewCode": "WYGENERUJ NOWY KOD",
+    "shareCodeMsg": "Twój kod Coachly",
+    "errorGenCode": "Nie udało się wygenerować kodu."
   },
   "pt": {
     "appName": "Coachly",
@@ -3266,7 +3343,14 @@ const strings = {
     "advice_v2_title": "Treinar é mais barato que terapia",
     "advice_v2_body": "Força e cardio reduzem de forma fiável ansiedade e depressão, melhoram o sono e a autoeficácia. Constróis corpo e mantens cérebro.",
     "advice_v3_title": "O teu eu futuro está a ver",
-    "advice_v3_body": "A versão de ti daqui a 12 meses vai agradecer ou lamentar a versão de hoje. Treina pensando nessa pessoa."
+    "advice_v3_body": "A versão de ti daqui a 12 meses vai agradecer ou lamentar a versão de hoje. Treina pensando nessa pessoa.",
+    "shareDescription": "Acesso seguro ao teu relatório de treino neste website:",
+    "sharePersonalNotes": "Incluir notas pessoais",
+    "codeValidFor": "Válido por 10 minutos",
+    "codeExpired": "O código expirou",
+    "generateNewCode": "GERAR NOVO CÓDIGO",
+    "shareCodeMsg": "O teu código Coachly",
+    "errorGenCode": "Não foi possível gerar o código."
   }
 };
 

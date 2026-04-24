@@ -179,3 +179,14 @@ export const scoresApi = {
 export function setAuthToken(_token) {}
 
 export default { authApi, logsApi, scoresApi, setAuthToken };
+
+export const shareApi = {
+  create: async ({ includeNotes = true } = {}) => {
+    const data = await request("POST", "/api/share", { includeNotes });
+    return data;
+  },
+  revoke: async () => {
+    const data = await request("DELETE", "/api/share");
+    return data;
+  },
+};

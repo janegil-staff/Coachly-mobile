@@ -28,6 +28,7 @@ import LogHistoryScreen from "../screens/log/LogHistoryScreen";
 import WorkoutsScreen from "../screens/workouts/WorkoutsScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import AdviceScreen from "../screens/advice/AdviceScreen";
+import ShareScreen from "../screens/share/ShareScreen";
 import ChangeEmailScreen from "../screens/profile/ChangeEmailScreen";
 import AboutScreen from "../screens/settings/AboutScreen";
 import LanguageScreen from "../screens/settings/LanguageScreen";
@@ -70,9 +71,9 @@ function AppStack() {
       <Stack.Screen name="History" component={LogHistoryScreen} />
       <Stack.Screen name="MyData" component={MyDataScreen} />
       <Stack.Screen name="Workouts" component={WorkoutsScreen} />
-      <Stack.Screen name="Share" component={MyDataScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Advice" component={AdviceScreen} />
+      <Stack.Screen name="Share" component={ShareScreen} />
       <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="Language" component={LanguageScreen} />
