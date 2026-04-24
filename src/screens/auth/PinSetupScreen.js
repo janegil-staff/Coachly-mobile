@@ -1,23 +1,158 @@
-// Placeholder — replace with real implementation.
+// src/screens/auth/PinSetupScreen.js
+// System numeric keyboard drives a hidden input. 4 visible dots show progress.
 
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  Keyboard,
+  Pressable,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
+import { useLang } from "../../context/LangContext";
+import { FontSize } from "../../constants/theme";
 
-export default function PinSetupScreen() {
+export default function PinSetupScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { t } = useLang();
+  const insets = useSafeAreaInsets();
+
+  const returnTo = route?.params?.returnTo;
+  const returnParams = route?.params?.returnParams ?? {};
+
+  const [pin, setPin] = useState("");
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    const id = setTimeout(() => inputRef.current?.focus(), 300);
+    return () => clearTimeout(id);
+  }, []);
+
+  const handleChange = (val) => {
+    const digits = val.replace(/\D/g, "").slice(0, 4);
+    setPin(digits);
+    if (digits.length === 4) {
+      Keyboard.dismiss();
+      setTimeout(() => {
+        navigation.navigate("PinConfirm", {
+          pin: digits,
+          returnTo,
+          returnParams,
+        });
+        setPin("");
+      }, 140);
+    }
+  };
+
+  const s = makeStyles(theme);
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>PinSetupScreen</Text>
-      <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-        Placeholder screen
+    <Pressable
+      style={[s.bg, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }]}
+      onPress={() => inputRef.current?.focus()}
+    >
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        hitSlop={16}
+        style={s.backBtn}
+      >
+        <Ionicons name="chevron-back" size={26} color={theme.text} />
+      </TouchableOpacity>
+
+      <View style={s.logoWrap}>
+        <Image
+          source={require("../../../assets/images/logo.png")}
+          style={s.logo}
+          resizeMode="contain"
+        />
+        <Text style={[s.wordmark, { color: theme.accent }]}>COACHLY</Text>
+      </View>
+
+      <Text style={[s.title, { color: theme.text }]}>{t.setupTitle}</Text>
+      <Text style={[s.subtitle, { color: theme.textSecondary }]}>
+        {t.setupBody}
       </Text>
-    </View>
+
+      <TouchableOpacity
+        style={s.dotsRow}
+        onPress={() => inputRef.current?.focus()}
+        activeOpacity={1}
+      >
+        {[0, 1, 2, 3].map((i) => (
+          <View
+            key={i}
+            style={[
+              s.dot,
+              {
+                backgroundColor:
+                  i < pin.length ? theme.accent : "transparent",
+                borderColor: theme.border,
+              },
+            ]}
+          />
+        ))}
+      </TouchableOpacity>
+
+      {/* Hidden native input — drives the system number pad */}
+      <TextInput
+        ref={inputRef}
+        value={pin}
+        onChangeText={handleChange}
+        keyboardType="number-pad"
+        maxLength={4}
+        style={s.hidden}
+        autoFocus
+        caretHidden
+        contextMenuHidden
+        textContentType="oneTimeCode"
+      />
+    </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  title: { fontSize: 20, fontWeight: "600", marginBottom: 8 },
-  subtitle: { fontSize: 14 },
-});
+function makeStyles(theme) {
+  return StyleSheet.create({
+    bg: {
+      flex: 1,
+      backgroundColor: theme.bg,
+      alignItems: "center",
+      paddingHorizontal: 24,
+    },
+    backBtn: { alignSelf: "flex-start", padding: 8, marginLeft: -8 },
+    logoWrap: { alignItems: "center", marginTop: 24, marginBottom: 32 },
+    logo: { width: 80, height: 80, borderRadius: 16 },
+    wordmark: {
+      marginTop: 10,
+      fontSize: 18,
+      fontWeight: "700",
+      letterSpacing: 4,
+    },
+    title: { fontSize: FontSize.xl, fontWeight: "600", textAlign: "center" },
+    subtitle: {
+      fontSize: FontSize.md,
+      marginTop: 8,
+      textAlign: "center",
+      paddingHorizontal: 16,
+    },
+    dotsRow: {
+      flexDirection: "row",
+      gap: 20,
+      marginTop: 48,
+      paddingHorizontal: 32,
+      paddingVertical: 16,
+    },
+    dot: { width: 20, height: 20, borderRadius: 10, borderWidth: 2 },
+    hidden: {
+      position: "absolute",
+      width: 1,
+      height: 1,
+      opacity: 0,
+    },
+  });
+}

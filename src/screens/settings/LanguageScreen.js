@@ -7,9 +7,9 @@ import { useTheme } from "../../context/ThemeContext";
 export default function LanguageScreen() {
   const { theme } = useTheme();
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>LanguageScreen</Text>
-      <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+      <Text style={[styles.title, { color: theme.text }]}>LanguageScreen</Text>
+      <Text style={[styles.subtitle, { color: theme.textMuted }]}>
         Placeholder screen
       </Text>
     </View>

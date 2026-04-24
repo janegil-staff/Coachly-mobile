@@ -1,72 +1,125 @@
 // src/services/api.js
-// Axios instance for the Coachly backend.
-// Single source of truth for baseURL, timeouts, and auth header.
-// The token is set imperatively via setAuthToken() from AuthContext.
+// Coachly backend client. Based on Recover's api.js pattern.
 
-import axios from "axios";
-import Constants from "expo-constants";
+import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-/**
- * Resolve the backend base URL.
- *
- * Priority:
- *   1. app.json → expo.extra.apiUrl  (recommended)
- *   2. EXPO_PUBLIC_API_URL env var    (fallback for local dev)
- *   3. Hardcoded localhost             (last resort)
- *
- * IMPORTANT for device testing:
- *   - iOS simulator: "http://localhost:4000" works
- *   - Android emulator: use "http://10.0.2.2:4000"
- *   - Real phone on WiFi: use your Mac's LAN IP, e.g. "http://192.168.1.42:4000"
- */
-function resolveBaseUrl() {
-  const fromExtra = Constants?.expoConfig?.extra?.apiUrl;
-  if (fromExtra) return fromExtra;
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ??
+  "https://monkfish-app-qjb62.ondigitalocean.app";
 
-  const fromEnv = process.env.EXPO_PUBLIC_API_URL;
-  if (fromEnv) return fromEnv;
-
-  return "http://localhost:4000";
+async function getToken() {
+  return SecureStore.getItemAsync("token");
 }
 
-const api = axios.create({
-  baseURL: resolveBaseUrl(),
-  timeout: 15000,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
+async function request(method, path, body) {
+  const token = await getToken();
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.message ?? "Request failed");
+  return json.data ?? json;
+}
+
+async function saveTokens(data) {
+  if (data.token) await SecureStore.setItemAsync("token", data.token);
+  if (data.refreshToken)
+    await SecureStore.setItemAsync("refreshToken", data.refreshToken);
+  if (data.user) await AsyncStorage.setItem("user", JSON.stringify(data.user));
+}
+
+async function clearSession() {
+  await SecureStore.deleteItemAsync("token").catch(() => {});
+  await SecureStore.deleteItemAsync("refreshToken").catch(() => {});
+  await AsyncStorage.removeItem("user").catch(() => {});
+}
+
+// ── authApi ───────────────────────────────────────────────────────────────
+export const authApi = {
+  register: async ({
+    email,
+    password,
+    name,
+    language,
+    age,
+    gender,
+    height,
+    weight,
+  }) => {
+    if (!email) throw new Error("Email is required");
+    const payload = {
+      email,
+      password,
+      name: name ?? (typeof email === "string" ? email.split("@")[0] : "") ?? "",
+      language: language ?? "en",
+      age: age ?? 0,
+      gender: gender ?? "other",
+      height: height ?? 0,
+      weight: weight ?? 0,
+    };
+    const data = await request("POST", "/api/auth/register", payload);
+    await saveTokens(data);
+    return data.user;
   },
-});
 
-/**
- * Set or clear the Authorization header for all subsequent requests.
- * Called by AuthContext after login/logout/hydrate.
- */
-export function setAuthToken(token) {
-  if (token) {
-    api.defaults.headers.common.Authorization = `Bearer ${token}`;
-  } else {
-    delete api.defaults.headers.common.Authorization;
-  }
-}
+  login: async ({ email, password }) => {
+    const data = await request("POST", "/api/auth/login", { email, password });
+    await saveTokens(data);
+    return data.user;
+  },
 
-/**
- * Optional: a response interceptor to normalize errors.
- * Leaves 401s to AuthContext.refreshUser() to handle.
- */
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    // Network error (no response)
-    if (!err.response) {
-      return Promise.reject({
-        code: "NETWORK",
-        message: "No response from server",
-        original: err,
-      });
+  getMe: async () => {
+    const token = await getToken();
+    if (!token) return null;
+    try {
+      return await request("GET", "/api/auth/me");
+    } catch {
+      return null;
     }
-    return Promise.reject(err);
   },
-);
 
-export default api;
+  logout: async () => {
+    await clearSession();
+  },
+
+  deleteAccount: async () => {
+    await request("DELETE", "/api/auth/account");
+    await clearSession();
+  },
+
+  requestPasswordReset: async (email) =>
+    request("POST", "/api/auth/forgot-password", { email }),
+
+  verifyResetCode: async (email, code) =>
+    request("POST", "/api/auth/forgot-password/verify", { email, code }),
+
+  resetPassword: async (email, code, newPassword) =>
+    request("POST", "/api/auth/forgot-password/reset", {
+      email,
+      code,
+      newPassword,
+    }),
+
+  checkEmail: async (email) => {
+    try {
+      await request("POST", "/api/auth/check-email", { email });
+      return { exists: false };
+    } catch (e) {
+      if (e.message?.toLowerCase().includes("already")) return { exists: true };
+      throw e;
+    }
+  },
+};
+
+// Keep setAuthToken available for older imports that might still reference it
+export function setAuthToken(_token) {
+  // Legacy no-op: token is read from SecureStore on each request().
+}
+
+export default { authApi, setAuthToken };
