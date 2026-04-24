@@ -2,6 +2,9 @@
   "expo": {
     "name": "coachly-mobile",
     "slug": "coachly-mobile",
+    "extra": {
+      "apiUrl": "http://192.168.1.42:5050"
+    },
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,6 +27,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": ["expo-localization", "expo-secure-store"]
   }
 }
