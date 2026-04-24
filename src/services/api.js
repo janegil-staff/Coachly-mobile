@@ -16,6 +16,7 @@ async function getToken() {
 }
 
 async function request(method, path, body) {
+  console.log("[api] →", method, path);
   const token = await getToken();
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
