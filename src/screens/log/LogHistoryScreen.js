@@ -624,9 +624,11 @@ export default function LogHistoryScreen({ navigation, route }) {
       setScoresLoading(true);
       scoresApi
         .list()
-        .then((scores) => {
+        .then((res) => {
+          // API returns either { scores: [...] } or a plain array — handle both.
+          const arr = Array.isArray(res) ? res : Array.isArray(res?.scores) ? res.scores : [];
           const map = {};
-          (scores ?? []).forEach((s) => {
+          arr.forEach((s) => {
             if (s?.date) map[s.date] = s.compositeScore;
           });
           setScoresByDate(map);
