@@ -2,6 +2,26 @@
 // Daily score: rounded average of effort + mood + energy.
 // On rest days, effort is excluded (average of mood + energy only).
 
+// src/utils/score.js (or wherever you keep client-side helpers)
+
+/**
+ * Convert a 0–100 score to a 1–5 scale for display.
+ * Returns null if score is missing.
+ */
+export function toFiveScale(score) {
+  if (typeof score !== "number") return null;
+  // 0 → 1, 100 → 5, linear in between
+  return 1 + (score / 100) * 4;
+}
+
+/**
+ * Same as above but rounded to nearest integer (for star/dot displays).
+ */
+export function toFiveScaleRounded(score) {
+  const v = toFiveScale(score);
+  return v === null ? null : Math.round(v);
+}
+
 export function computeDailyScore({ isRestDay, effort, mood, energy }) {
   const values = isRestDay ? [mood, energy] : [effort, mood, energy];
   const valid = values.filter((v) => typeof v === "number" && v >= 1 && v <= 5);

@@ -173,7 +173,8 @@ export const scoresApi = {
     if (to) qs.push(`to=${to}`);
     const suffix = qs.length ? `?${qs.join("&")}` : "";
     const data = await request("GET", `/api/scores${suffix}`);
-    return data?.scores ?? [];
+    // Controller returns { success: true, data: [...] }
+    return data?.data ?? data?.scores ?? [];
   },
 };
 
