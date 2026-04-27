@@ -4,8 +4,7 @@
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5050";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5050";
 
 const TOKEN_KEY = "accessToken";
 const REFRESH_KEY = "refreshToken";
@@ -178,6 +177,41 @@ export const scoresApi = {
   },
 };
 
+// Add this to src/services/api.js alongside scoresApi, logsApi, etc.
+
+export const workoutsApi = {
+  /** Returns { today: [...], upcoming: [...], past: [...] } */
+  listUpcoming: async () => {
+    const data = await request("GET", "/api/workouts/upcoming");
+    return {
+      today: data?.today ?? [],
+      upcoming: data?.upcoming ?? [],
+      past: data?.past ?? [],
+    };
+  },
+
+  get: async (id) => {
+    const data = await request("GET", `/api/workouts/${id}`);
+    return data?.workout ?? null;
+  },
+
+  complete: async (id, { rpe, feedback } = {}) => {
+    const body = {};
+    if (rpe != null) body.rpe = rpe;
+    if (feedback != null) body.feedback = feedback;
+    const data = await request("POST", `/api/workouts/${id}/complete`, body);
+    return data?.workout ?? null;
+  },
+
+  uncomplete: async (id) => {
+    const data = await request("POST", `/api/workouts/${id}/uncomplete`);
+    return data?.workout ?? null;
+  },
+};
+
+// Don't forget to add `workoutsApi` to the default export object too:
+//
+// export default { authApi, logsApi, scoresApi, workoutsApi, setAuthToken };
 export function setAuthToken(_token) {}
 
 export default { authApi, logsApi, scoresApi, setAuthToken };
@@ -195,7 +229,11 @@ export const shareApi = {
 
 export const questionnairesApi = {
   submit: async ({ type, answers, date }) => {
-    return await request("POST", "/api/questionnaires", { type, answers, date });
+    return await request("POST", "/api/questionnaires", {
+      type,
+      answers,
+      date,
+    });
   },
   list: async ({ type, limit } = {}) => {
     const qs = [];
@@ -205,6 +243,9 @@ export const questionnairesApi = {
     return await request("GET", "/api/questionnaires" + suffix);
   },
   latest: async (type) => {
-    return await request("GET", "/api/questionnaires/latest?type=" + encodeURIComponent(type));
+    return await request(
+      "GET",
+      "/api/questionnaires/latest?type=" + encodeURIComponent(type),
+    );
   },
 };
