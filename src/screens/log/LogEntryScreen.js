@@ -1,17 +1,25 @@
 // src/screens/log/LogEntryScreen.js
-// 4-step wizard: Rest toggle → Workouts (multi) → Ratings → Notes + review.
+// 6-step wizard:
+//   Step 1: Rest day toggle
+//   Step 2: Ratings
+//   Step 3: Categories + duration per category (REQUIRED minutes)
+//   Step 4: Exercises within picked categories (OPTIONAL)
+//   Step 5: Weight
+//   Step 6: Notes + review
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Pressable,
   TextInput,
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,33 +28,43 @@ import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
 import { useLogs } from "../../context/LogsContext";
 import { useAuth } from "../../context/AuthContext";
-import { authApi } from "../../services/api";
+import { authApi, exercisesApi } from "../../services/api";
 import { FontSize, Spacing, Radius } from "../../constants/theme";
+import { getTranslatedCatalog } from "../../lib/exerciseCatalog";
 import Rating from "../../components/Rating";
-import { computeDailyScore, scoreColor, bucketScore, describeWorkoutScore } from "../../utils/score";
+import {
+  computeDailyScore,
+  scoreColor,
+  bucketScore,
+  describeWorkoutScore,
+} from "../../utils/score";
 
-const WORKOUT_TYPES = ["strength", "cardio", "mobility", "recovery", "other"];
+const CATEGORY_ORDER = ["strength", "cardio", "mobility", "recovery", "other"];
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function categoryLabel(cat, t) {
+  return t[`category${cat.charAt(0).toUpperCase() + cat.slice(1)}`] ?? cat;
+}
+
 export default function LogEntryScreen({ navigation, route }) {
-  // Date for this entry: from route params if editing, else today
   const entryDate = route?.params?.date ?? today();
 
   const { theme } = useTheme();
   const { t } = useLang();
   const insets = useSafeAreaInsets();
-  const { saveLog, logs, getLogForDate } = useLogs();
+  const { saveLog, getLogForDate, deleteLog } = useLogs();
   const { user, updateUser } = useAuth();
   const s = makeStyles(theme);
 
   const [step, setStep] = useState(1);
+  const [isExisting, setIsExisting] = useState(false);
 
-  // Form state
+  // ── Form state ──
   const [isRestDay, setIsRestDay] = useState(false);
-  // workouts: [{ type: "strength", durationMinutes: 30 }, ...]
+  const [categoryDurations, setCategoryDurations] = useState([]);
   const [workouts, setWorkouts] = useState([]);
   const [effort, setEffort] = useState(3);
   const [mood, setMood] = useState(3);
@@ -56,19 +74,108 @@ export default function LogEntryScreen({ navigation, route }) {
   const [notes, setNotes] = useState("");
   const [weightKg, setWeightKg] = useState("");
   const [saving, setSaving] = useState(false);
-  // Prefill fields from existing log for this date (edit mode)
-  React.useEffect(() => {
+
+  const [myExercises, setMyExercises] = useState([]);
+  const [loadingExercises, setLoadingExercises] = useState(true);
+
+  // Load library
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [customs, slugs] = await Promise.all([
+          exercisesApi.listCustom().catch(() => []),
+          exercisesApi.getSelection().catch(() => []),
+        ]);
+        if (cancelled) return;
+
+        const catalog = getTranslatedCatalog(t);
+        const catalogSelected = catalog
+          .filter((c) => slugs.includes(c.slug))
+          .map((c) => ({
+            type: c.category,
+            exerciseSlug: c.slug,
+            exerciseId: null,
+            name: c.name,
+            _id: `catalog:${c.slug}`,
+          }));
+        const customItems = customs.map((c) => ({
+          type: c.category,
+          exerciseSlug: null,
+          exerciseId: c._id,
+          name: c.name,
+          _id: c._id,
+        }));
+
+        setMyExercises([...catalogSelected, ...customItems]);
+      } catch (err) {
+        console.warn("Failed to load exercises", err);
+      } finally {
+        if (!cancelled) setLoadingExercises(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [t]);
+
+  // Prefill from existing log
+  useEffect(() => {
     const existing = getLogForDate ? getLogForDate(entryDate) : null;
-    if (!existing) return;
-    if (typeof existing.isRestDay === "boolean") setIsRestDay(existing.isRestDay);
-    if (Array.isArray(existing.workouts)) {
-      setWorkouts(
-        existing.workouts.map((w) => ({
-          type: w.type,
-          durationMinutes: w.durationMinutes ?? 0,
-        }))
-      );
+    if (!existing) {
+      setIsExisting(false);
+      return;
     }
+    setIsExisting(true);
+
+    if (typeof existing.isRestDay === "boolean")
+      setIsRestDay(existing.isRestDay);
+
+    if (Array.isArray(existing.categoryDurations)) {
+      setCategoryDurations(
+        existing.categoryDurations.map((c) => ({
+          type: c.type,
+          durationMinutes: c.durationMinutes ?? 30,
+        })),
+      );
+    } else if (
+      Array.isArray(existing.workouts) &&
+      existing.workouts.length > 0
+    ) {
+      const byType = {};
+      for (const w of existing.workouts) {
+        if (!w?.type) continue;
+        if (w.durationMinutes != null) {
+          byType[w.type] = Math.max(
+            byType[w.type] ?? 0,
+            w.durationMinutes ?? 0,
+          );
+        }
+      }
+      const durations = Object.entries(byType).map(
+        ([type, durationMinutes]) => ({
+          type,
+          durationMinutes,
+        }),
+      );
+      if (durations.length) setCategoryDurations(durations);
+    }
+
+    if (Array.isArray(existing.workouts)) {
+      const exercises = existing.workouts
+        .filter((w) => w.exerciseSlug || w.exerciseId || w.name)
+        .map((w) => ({
+          type: w.type,
+          exerciseSlug: w.exerciseSlug ?? null,
+          exerciseId: w.exerciseId ?? null,
+          name: w.name ?? null,
+          _id:
+            w.exerciseId ??
+            (w.exerciseSlug ? `catalog:${w.exerciseSlug}` : `legacy:${w.type}`),
+        }));
+      setWorkouts(exercises);
+    }
+
     if (existing.effort != null) setEffort(existing.effort);
     if (existing.mood != null) setMood(existing.mood);
     if (existing.energy != null) setEnergy(existing.energy);
@@ -78,59 +185,106 @@ export default function LogEntryScreen({ navigation, route }) {
     if (existing.weightKg != null) setWeightKg(String(existing.weightKg));
   }, [entryDate]);
 
-  // Prefill weight from the user's clientProfile (current weight).
-  // Runs on mount and any time the profile value changes from the server.
-  React.useEffect(() => {
+  useEffect(() => {
     const profileWeight = user?.clientProfile?.weightKg;
-    if (profileWeight != null && profileWeight > 0) {
+    if (profileWeight != null && profileWeight > 0 && !weightKg) {
       setWeightKg(String(profileWeight));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.clientProfile?.weightKg]);
 
-  const totalSteps = isRestDay ? 4 : 5;
-  const displayStep = isRestDay ? (step === 1 ? 1 : step - 1) : step;
+  const totalSteps = isRestDay ? 4 : 6;
+  const displayStep = isRestDay
+    ? step === 1 ? 1
+      : step === 2 ? 2
+      : step === 5 ? 3
+      : step === 6 ? 4
+      : step
+    : step;
 
-  const totalDuration = workouts.reduce((sum, w) => sum + (w.durationMinutes || 0), 0);
+  const totalDuration = categoryDurations.reduce(
+    (sum, c) => sum + (c.durationMinutes || 0),
+    0,
+  );
 
   const score = useMemo(
     () => computeDailyScore({ isRestDay, effort, mood, energy }),
-    [isRestDay, effort, mood, energy]
+    [isRestDay, effort, mood, energy],
   );
 
-  const hasWorkout = (type) => workouts.some((w) => w.type === type);
+  const hasCategory = (cat) => categoryDurations.some((c) => c.type === cat);
 
-  const toggleWorkout = (type) => {
-    if (hasWorkout(type)) {
-      setWorkouts(workouts.filter((w) => w.type !== type));
+  const toggleCategory = (cat) => {
+    if (hasCategory(cat)) {
+      setCategoryDurations((prev) => prev.filter((c) => c.type !== cat));
+      setWorkouts((prev) => prev.filter((w) => w.type !== cat));
     } else {
-      setWorkouts([...workouts, { type, durationMinutes: 30 }]);
+      setCategoryDurations((prev) => [
+        ...prev,
+        { type: cat, durationMinutes: 30 },
+      ]);
     }
   };
 
-  const updateDuration = (type, durationMinutes) => {
-    setWorkouts(
-      workouts.map((w) => (w.type === type ? { ...w, durationMinutes } : w))
+  const updateDuration = (cat, durationMinutes) => {
+    setCategoryDurations((prev) =>
+      prev.map((c) => (c.type === cat ? { ...c, durationMinutes } : c)),
     );
   };
 
+  const isLogged = (item) => workouts.some((w) => w._id === item._id);
+
+  const toggleExercise = (item) => {
+    if (isLogged(item)) {
+      setWorkouts(workouts.filter((w) => w._id !== item._id));
+    } else {
+      setWorkouts([
+        ...workouts,
+        {
+          type: item.type,
+          exerciseSlug: item.exerciseSlug,
+          exerciseId: item.exerciseId,
+          name: item.name,
+          _id: item._id,
+        },
+      ]);
+    }
+  };
+
+  const groupedForStep4 = useMemo(() => {
+    const map = {};
+    for (const ex of myExercises) {
+      if (!hasCategory(ex.type)) continue;
+      (map[ex.type] ||= []).push(ex);
+    }
+    return CATEGORY_ORDER.filter((c) => hasCategory(c)).map((c) => ({
+      category: c,
+      items: map[c] ?? [],
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myExercises, categoryDurations]);
+
   const canGoNext = () => {
-    if (step === 2) {
-      return workouts.length > 0 && workouts.every((w) => w.durationMinutes > 0);
+    if (step === 3) {
+      return (
+        categoryDurations.length > 0 &&
+        categoryDurations.every((c) => c.durationMinutes > 0)
+      );
     }
     return true;
   };
 
   const goNext = () => {
-    if (step === 1 && isRestDay) {
-      setStep(3);
-    } else if (step < 5) {
+    if (step === 2 && isRestDay) {
+      setStep(5);
+    } else if (step < 6) {
       setStep(step + 1);
     }
   };
 
   const goBack = () => {
-    if (step === 3 && isRestDay) {
-      setStep(1);
+    if (step === 5 && isRestDay) {
+      setStep(2);
     } else if (step > 1) {
       setStep(step - 1);
     } else {
@@ -138,12 +292,42 @@ export default function LogEntryScreen({ navigation, route }) {
     }
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      t.deleteEntry ?? "Delete entry?",
+      t.deleteEntryConfirm ?? "This cannot be undone.",
+      [
+        { text: t.cancel ?? "Cancel", style: "cancel" },
+        {
+          text: t.delete ?? "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteLog(entryDate);
+              navigation.goBack();
+            } catch (e) {
+              Alert.alert(t.error ?? "Error", e?.message ?? "Could not delete");
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const save = async () => {
     setSaving(true);
     const payload = {
       date: entryDate,
       isRestDay,
-      workouts: isRestDay ? [] : workouts,
+      categoryDurations: isRestDay ? [] : categoryDurations,
+      workouts: isRestDay
+        ? []
+        : workouts.map((w) => ({
+            type: w.type,
+            exerciseSlug: w.exerciseSlug ?? null,
+            exerciseId: w.exerciseId ?? null,
+            name: w.name ?? null,
+          })),
       effort: isRestDay ? null : effort,
       mood,
       energy,
@@ -154,59 +338,65 @@ export default function LogEntryScreen({ navigation, route }) {
     };
     try {
       const res = await saveLog(payload);
-      // Cascade weight to client profile so it becomes the new current weight
       if (weightKg) {
         try {
-          const updated = await authApi.updateProfile({ weightKg: parseFloat(weightKg) });
+          const updated = await authApi.updateProfile({
+            weightKg: parseFloat(weightKg),
+          });
           if (updated) updateUser(updated);
-        } catch (_) {
-          // non-fatal — log entry already saved
-        }
+        } catch (_) {}
       }
       const backendScore = res && res.score && res.score.compositeScore;
-            const bucket = bucketScore(backendScore);
-            const desc = describeWorkoutScore({
-              isRestDay: isRestDay,
-              workouts: workouts,
-              effort: effort,
-            });
-            const restLabel = t.restDay ?? "Rest day";
-            const minutesLabel = t.minutes ?? "min";
-            const ptsLabel = t.points ?? "pts";
-            const line1 = isRestDay
-              ? restLabel
-              : (desc.minutes + " " + minutesLabel + " • " + desc.score + " " + ptsLabel);
-            const line2 = bucket != null
-              ? ((t.scoreLabel ?? "Score") + ": " + bucket + "/5")
-              : null;
-            const msg = line2 ? (line1 + "\n" + line2) : line1;
-      Alert.alert("Saved", msg, [
+      const bucket = bucketScore(backendScore);
+      const desc = describeWorkoutScore({
+        isRestDay,
+        workouts: categoryDurations,
+        effort,
+      });
+      const restLabel = t.restDay ?? "Rest day";
+      const minutesLabel = t.minutes ?? "min";
+      const ptsLabel = t.points ?? "pts";
+      const line1 = isRestDay
+        ? restLabel
+        : `${totalDuration} ${minutesLabel} • ${desc.score} ${ptsLabel}`;
+      const line2 =
+        bucket != null
+          ? (t.scoreLabel ?? "Score") + ": " + bucket + "/5"
+          : null;
+      const msg = line2 ? line1 + "\n" + line2 : line1;
+      Alert.alert(t.saved ?? "Saved", msg, [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (e) {
-      Alert.alert("Error", (e && e.message) || "Could not save");
+      Alert.alert(t.error ?? "Error", (e && e.message) || "Could not save");
     } finally {
       setSaving(false);
     }
   };
 
-  const workoutLabel = (type) =>
-    t[`category${type.charAt(0).toUpperCase() + type.slice(1)}`] ?? type;
-
   return (
-    <View style={[s.bg, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={goBack} hitSlop={16} style={s.backBtn}>
-          <Ionicons name="chevron-back" size={26} color={theme.text} />
+    <View style={s.bg}>
+      {/* ── Header (matches Profile/Workouts pattern) ── */}
+      <View style={[s.header, { paddingTop: insets.top + Spacing.sm }]}>
+        <TouchableOpacity onPress={goBack} hitSlop={16} style={s.headerBtn}>
+          <Ionicons name="chevron-back" size={26} color="#fff" />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>
+        <Text style={s.headerTitle} numberOfLines={1}>
           {displayStep}/{totalSteps} · {t.logEntryTitle ?? "Log training"}
         </Text>
-        <View style={s.backBtn} />
+        {isExisting ? (
+          <TouchableOpacity
+            onPress={handleDelete}
+            hitSlop={16}
+            style={s.headerBtn}
+          >
+            <Ionicons name="trash-outline" size={22} color="#fff" />
+          </TouchableOpacity>
+        ) : (
+          <View style={s.headerBtn} />
+        )}
       </View>
 
-      {/* Progress */}
       <View style={s.progressTrack}>
         <View
           style={[
@@ -227,15 +417,17 @@ export default function LogEntryScreen({ navigation, route }) {
           contentContainerStyle={s.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Step 1 — Rest day toggle */}
           {step === 1 && (
             <>
-              <Text style={s.stepTitle}>Today was a…</Text>
+              <Text style={s.stepTitle}>{t.todayWasA ?? "Today was a…"}</Text>
               <View style={s.choiceRow}>
                 <TouchableOpacity
                   style={[
                     s.choiceCard,
-                    !isRestDay && { borderColor: theme.accent, backgroundColor: theme.accentBg },
+                    !isRestDay && {
+                      borderColor: theme.accent,
+                      backgroundColor: theme.accentBg,
+                    },
                   ]}
                   onPress={() => setIsRestDay(false)}
                   activeOpacity={0.8}
@@ -248,17 +440,22 @@ export default function LogEntryScreen({ navigation, route }) {
                   <Text
                     style={[
                       s.choiceLabel,
-                      { color: !isRestDay ? theme.accent : theme.textSecondary },
+                      {
+                        color: !isRestDay ? theme.accent : theme.textSecondary,
+                      },
                     ]}
                   >
-                    Training day
+                    {t.trainingDay ?? "Training day"}
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[
                     s.choiceCard,
-                    isRestDay && { borderColor: theme.accent, backgroundColor: theme.accentBg },
+                    isRestDay && {
+                      borderColor: theme.accent,
+                      backgroundColor: theme.accentBg,
+                    },
                   ]}
                   onPress={() => setIsRestDay(true)}
                   activeOpacity={0.8}
@@ -271,33 +468,98 @@ export default function LogEntryScreen({ navigation, route }) {
                   <Text
                     style={[
                       s.choiceLabel,
-                      { color: isRestDay ? theme.accent : theme.textSecondary },
+                      {
+                        color: isRestDay ? theme.accent : theme.textSecondary,
+                      },
                     ]}
                   >
-                    Rest day
+                    {t.restDay ?? "Rest day"}
                   </Text>
                 </TouchableOpacity>
               </View>
             </>
           )}
 
-          {/* Step 2 — Workouts (multi-select + per-item duration) */}
-          {step === 2 && !isRestDay && (
+          {step === 2 && (
+            <>
+              <View
+                style={[
+                  s.scorePreview,
+                  { borderColor: scoreColor(score, theme) },
+                ]}
+              >
+                <Text style={s.scoreLabel}>
+                  {t.todaysScore ?? "Today's score"}
+                </Text>
+                <Text
+                  style={[s.scoreValue, { color: scoreColor(score, theme) }]}
+                >
+                  {score ?? "–"}
+                </Text>
+              </View>
+
+              {!isRestDay && (
+                <Rating
+                  label={t.effort ?? "Effort"}
+                  value={effort}
+                  onChange={setEffort}
+                  leftLabel={t.veryLight ?? "Very light"}
+                  rightLabel={t.veryHard ?? "Very hard"}
+                />
+              )}
+              <Rating
+                label={t.mood ?? "Mood"}
+                value={mood}
+                onChange={setMood}
+                leftLabel={t.bad ?? "Bad"}
+                rightLabel={t.great ?? "Great"}
+              />
+              <Rating
+                label={t.energy ?? "Energy"}
+                value={energy}
+                onChange={setEnergy}
+                leftLabel={t.exhausted ?? "Exhausted"}
+                rightLabel={t.energized ?? "Energized"}
+              />
+              <Rating
+                label={t.sleepLastNight ?? "Sleep (last night)"}
+                value={sleep}
+                onChange={setSleep}
+                leftLabel={t.poor ?? "Poor"}
+                rightLabel={t.excellent ?? "Excellent"}
+              />
+              <Rating
+                label={t.soreness ?? "Soreness"}
+                value={soreness}
+                onChange={setSoreness}
+                leftLabel={t.none ?? "None"}
+                rightLabel={t.verySore ?? "Very sore"}
+              />
+            </>
+          )}
+
+          {step === 3 && !isRestDay && (
             <>
               <Text style={s.stepTitle}>{t.workouts ?? "Workouts"}</Text>
-              <Text style={s.stepHint}>Tap to add or remove. Set duration for each.</Text>
+              <Text style={s.stepHint}>
+                {t.categoriesDurationHint ??
+                  "Tap categories you trained, then set the time for each."}
+              </Text>
 
               <View style={s.typeRow}>
-                {WORKOUT_TYPES.map((type) => {
-                  const active = hasWorkout(type);
+                {CATEGORY_ORDER.map((cat) => {
+                  const active = hasCategory(cat);
                   return (
                     <TouchableOpacity
-                      key={type}
+                      key={cat}
                       style={[
                         s.typeChip,
-                        active && { backgroundColor: theme.accent, borderColor: theme.accent },
+                        active && {
+                          backgroundColor: theme.accent,
+                          borderColor: theme.accent,
+                        },
                       ]}
-                      onPress={() => toggleWorkout(type)}
+                      onPress={() => toggleCategory(cat)}
                       activeOpacity={0.8}
                     >
                       {active && (
@@ -314,23 +576,28 @@ export default function LogEntryScreen({ navigation, route }) {
                           { color: active ? "#fff" : theme.text },
                         ]}
                       >
-                        {workoutLabel(type)}
+                        {categoryLabel(cat, t)}
                       </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              {/* Per-workout duration cards */}
-              {workouts.map((w) => (
-                <View key={w.type} style={s.workoutCard}>
+              {categoryDurations.map((c) => (
+                <View key={c.type} style={s.workoutCard}>
                   <View style={s.workoutCardHeader}>
-                    <Text style={s.workoutCardTitle}>{workoutLabel(w.type)}</Text>
+                    <Text style={s.workoutCardTitle}>
+                      {categoryLabel(c.type, t)}
+                    </Text>
                     <TouchableOpacity
-                      onPress={() => toggleWorkout(w.type)}
+                      onPress={() => toggleCategory(c.type)}
                       hitSlop={12}
                     >
-                      <Ionicons name="close-circle" size={22} color={theme.textMuted} />
+                      <Ionicons
+                        name="close-circle"
+                        size={22}
+                        color={theme.textMuted}
+                      />
                     </TouchableOpacity>
                   </View>
 
@@ -338,16 +605,22 @@ export default function LogEntryScreen({ navigation, route }) {
                     <TouchableOpacity
                       style={s.durationBtn}
                       onPress={() =>
-                        updateDuration(w.type, Math.max(5, w.durationMinutes - 5))
+                        updateDuration(
+                          c.type,
+                          Math.max(5, c.durationMinutes - 5),
+                        )
                       }
                     >
                       <Ionicons name="remove" size={22} color={theme.accent} />
                     </TouchableOpacity>
-                    <Text style={s.durationValue}>{w.durationMinutes}</Text>
+                    <Text style={s.durationValue}>{c.durationMinutes}</Text>
                     <TouchableOpacity
                       style={s.durationBtn}
                       onPress={() =>
-                        updateDuration(w.type, Math.min(300, w.durationMinutes + 5))
+                        updateDuration(
+                          c.type,
+                          Math.min(300, c.durationMinutes + 5),
+                        )
                       }
                     >
                       <Ionicons name="add" size={22} color={theme.accent} />
@@ -360,19 +633,19 @@ export default function LogEntryScreen({ navigation, route }) {
                         key={mins}
                         style={[
                           s.presetChip,
-                          w.durationMinutes === mins && {
+                          c.durationMinutes === mins && {
                             backgroundColor: theme.accent,
                             borderColor: theme.accent,
                           },
                         ]}
-                        onPress={() => updateDuration(w.type, mins)}
+                        onPress={() => updateDuration(c.type, mins)}
                       >
                         <Text
                           style={[
                             s.presetText,
                             {
                               color:
-                                w.durationMinutes === mins
+                                c.durationMinutes === mins
                                   ? "#fff"
                                   : theme.textSecondary,
                             },
@@ -386,75 +659,104 @@ export default function LogEntryScreen({ navigation, route }) {
                 </View>
               ))}
 
-              {workouts.length > 0 && (
+              {categoryDurations.length > 0 && (
                 <View style={s.totalRow}>
-                  <Text style={s.totalLabel}>Total</Text>
-                  <Text style={s.totalValue}>{totalDuration} min</Text>
+                  <Text style={s.totalLabel}>{t.totalLabel ?? "Total"}</Text>
+                  <Text style={s.totalValue}>
+                    {totalDuration} {t.minutes ?? "min"}
+                  </Text>
                 </View>
               )}
 
-              {workouts.length === 0 && (
+              {categoryDurations.length === 0 && (
                 <View style={s.emptyHint}>
                   <Text style={s.emptyHintText}>
-                    Pick at least one workout above.
+                    {t.pickAtLeastOneCategory ??
+                      "Pick at least one category above."}
                   </Text>
                 </View>
               )}
             </>
           )}
 
-          {/* Step 3 — Ratings */}
-          {step === 3 && (
+          {step === 4 && !isRestDay && (
             <>
-              <View style={[s.scorePreview, { borderColor: scoreColor(score, theme) }]}>
-                <Text style={s.scoreLabel}>Today's score</Text>
-                <Text style={[s.scoreValue, { color: scoreColor(score, theme) }]}>
-                  {score ?? "–"}
-                </Text>
-              </View>
+              <Text style={s.stepTitle}>
+                {t.specificExercises ?? "Specific exercises"}
+              </Text>
+              <Text style={s.stepHint}>
+                {t.tapExercisesOptional ?? "Tap exercises you did (optional)."}
+              </Text>
 
-              {!isRestDay && (
-                <Rating
-                  label={t.effort ?? "Effort"}
-                  value={effort}
-                  onChange={setEffort}
-                  leftLabel="Very light"
-                  rightLabel="Very hard"
-                />
+              {loadingExercises ? (
+                <View style={{ paddingVertical: 40, alignItems: "center" }}>
+                  <ActivityIndicator color={theme.accent} />
+                </View>
+              ) : groupedForStep4.every((g) => g.items.length === 0) ? (
+                <View style={s.emptyState}>
+                  <Ionicons
+                    name="list-outline"
+                    size={44}
+                    color={theme.textMuted}
+                  />
+                  <Text style={s.emptyTitle}>
+                    {t.noExercisesYet ?? "No exercises in your library"}
+                  </Text>
+                  <Text style={s.emptyDesc}>
+                    {t.setUpExercisesFirst ??
+                      "Set up exercises for these categories — or just continue."}
+                  </Text>
+                  <TouchableOpacity
+                    style={s.emptyBtn}
+                    onPress={() => navigation.navigate("Workouts")}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={s.emptyBtnText}>
+                      {t.goToWorkouts ?? "Set up exercises"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <>
+                  {groupedForStep4.map((group) => (
+                    <View key={group.category} style={{ marginBottom: 14 }}>
+                      <Text style={s.groupHeader}>
+                        {categoryLabel(group.category, t)}
+                      </Text>
+                      {group.items.length === 0 ? (
+                        <Text style={s.groupEmpty}>
+                          {t.noExercisesInCategory ??
+                            "No exercises in this category yet."}
+                        </Text>
+                      ) : (
+                        group.items.map((ex) => (
+                          <ExerciseRow
+                            key={ex._id}
+                            ex={ex}
+                            isSelected={isLogged(ex)}
+                            theme={theme}
+                            s={s}
+                            onPress={() => toggleExercise(ex)}
+                          />
+                        ))
+                      )}
+                    </View>
+                  ))}
+
+                  {workouts.length > 0 && (
+                    <View style={s.totalRow}>
+                      <Text style={s.totalLabel}>
+                        {t.selectedCount ?? "Selected"}
+                      </Text>
+                      <Text style={s.totalValue}>{workouts.length}</Text>
+                    </View>
+                  )}
+                </>
               )}
-              <Rating
-                label={t.mood ?? "Mood"}
-                value={mood}
-                onChange={setMood}
-                leftLabel="Bad"
-                rightLabel="Great"
-              />
-              <Rating
-                label={t.energy ?? "Energy"}
-                value={energy}
-                onChange={setEnergy}
-                leftLabel="Exhausted"
-                rightLabel="Energized"
-              />
-              <Rating
-                label="Sleep (last night)"
-                value={sleep}
-                onChange={setSleep}
-                leftLabel="Poor"
-                rightLabel="Excellent"
-              />
-              <Rating
-                label="Soreness"
-                value={soreness}
-                onChange={setSoreness}
-                leftLabel="None"
-                rightLabel="Very sore"
-              />
             </>
           )}
 
-          {/* Step 4 — Weight */}
-          {step === 4 && (
+          {step === 5 && (
             <>
               <Text style={s.stepTitle}>{t.weightTitle ?? "Weight"}</Text>
               <Text style={s.stepHint}>
@@ -465,8 +767,9 @@ export default function LogEntryScreen({ navigation, route }) {
                 <TextInput
                   value={weightKg}
                   onChangeText={(v) => {
-                    // Allow digits + one decimal point
-                    const cleaned = v.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+                    const cleaned = v
+                      .replace(/[^0-9.]/g, "")
+                      .replace(/(\..*)\./g, "$1");
                     setWeightKg(cleaned);
                   }}
                   keyboardType="decimal-pad"
@@ -481,7 +784,7 @@ export default function LogEntryScreen({ navigation, route }) {
               {!weightKg && (
                 <TouchableOpacity
                   style={s.skipBtn}
-                  onPress={() => setStep(5)}
+                  onPress={() => setStep(6)}
                   activeOpacity={0.7}
                 >
                   <Text style={s.skipBtnText}>
@@ -492,14 +795,15 @@ export default function LogEntryScreen({ navigation, route }) {
             </>
           )}
 
-          {/* Step 5 — Notes + review */}
-          {step === 5 && (
+          {step === 6 && (
             <>
               <Text style={s.stepTitle}>{t.notes ?? "Notes"}</Text>
               <TextInput
                 value={notes}
                 onChangeText={setNotes}
-                placeholder="How was it? Anything to remember?"
+                placeholder={
+                  t.notesPlaceholder ?? "How was it? Anything to remember?"
+                }
                 placeholderTextColor={theme.textMuted}
                 style={s.notesInput}
                 multiline
@@ -508,43 +812,100 @@ export default function LogEntryScreen({ navigation, route }) {
               />
 
               <View style={s.summaryCard}>
-                <Text style={s.summaryTitle}>Summary</Text>
-                <SummaryRow label="Date" value={entryDate} theme={theme} />
+                <Text style={s.summaryTitle}>{t.summary ?? "Summary"}</Text>
                 <SummaryRow
-                  label="Type"
-                  value={isRestDay ? "Rest day" : "Training"}
+                  label={t.dateLabel ?? "Date"}
+                  value={entryDate}
                   theme={theme}
                 />
-                {!isRestDay && workouts.map((w) => (
-                  <SummaryRow
-                    key={w.type}
-                    label={workoutLabel(w.type)}
-                    value={`${w.durationMinutes} min`}
-                    theme={theme}
-                  />
-                ))}
-                {!isRestDay && workouts.length > 0 && (
+                <SummaryRow
+                  label={t.typeLabel ?? "Type"}
+                  value={
+                    isRestDay
+                      ? (t.restDay ?? "Rest day")
+                      : (t.training ?? "Training")
+                  }
+                  theme={theme}
+                />
+                {!isRestDay && categoryDurations.length > 0 && (
                   <>
                     <View style={s.summaryDivider} />
+                    {CATEGORY_ORDER.filter((c) => hasCategory(c)).map((cat) => {
+                      const cd = categoryDurations.find((c) => c.type === cat);
+                      const exercises = workouts.filter((w) => w.type === cat);
+                      return (
+                        <View key={cat} style={{ marginVertical: 4 }}>
+                          <SummaryRow
+                            label={categoryLabel(cat, t)}
+                            value={`${cd?.durationMinutes ?? 0} ${
+                              t.minutes ?? "min"
+                            }`}
+                            valueColor={theme.accent}
+                            theme={theme}
+                            bold
+                          />
+                          {exercises.map((ex) => (
+                            <Text
+                              key={ex._id}
+                              style={{
+                                color: theme.textMuted,
+                                fontSize: FontSize.sm,
+                                marginLeft: Spacing.md,
+                                marginTop: 2,
+                              }}
+                            >
+                              • {ex.name}
+                            </Text>
+                          ))}
+                        </View>
+                      );
+                    })}
+                    <View style={s.summaryDivider} />
                     <SummaryRow
-                      label="Total"
-                      value={`${totalDuration} min`}
+                      label={t.totalLabel ?? "Total"}
+                      value={`${totalDuration} ${t.minutes ?? "min"}`}
                       theme={theme}
                       bold
                     />
-                    <SummaryRow label="Effort" value={effort} theme={theme} />
                   </>
                 )}
-                <SummaryRow label="Mood" value={mood} theme={theme} />
-                <SummaryRow label="Energy" value={energy} theme={theme} />
-                <SummaryRow label="Sleep" value={sleep} theme={theme} />
-                <SummaryRow label="Soreness" value={soreness} theme={theme} />
+                {!isRestDay && (
+                  <SummaryRow
+                    label={t.effort ?? "Effort"}
+                    value={effort}
+                    theme={theme}
+                  />
+                )}
+                <SummaryRow
+                  label={t.mood ?? "Mood"}
+                  value={mood}
+                  theme={theme}
+                />
+                <SummaryRow
+                  label={t.energy ?? "Energy"}
+                  value={energy}
+                  theme={theme}
+                />
+                <SummaryRow
+                  label={t.sleep ?? "Sleep"}
+                  value={sleep}
+                  theme={theme}
+                />
+                <SummaryRow
+                  label={t.soreness ?? "Soreness"}
+                  value={soreness}
+                  theme={theme}
+                />
                 {weightKg && (
-                  <SummaryRow label="Weight" value={`${weightKg} kg`} theme={theme} />
+                  <SummaryRow
+                    label={t.weight ?? "Weight"}
+                    value={`${weightKg} kg`}
+                    theme={theme}
+                  />
                 )}
                 <View style={s.summaryDivider} />
                 <SummaryRow
-                  label="Score"
+                  label={t.scoreLabel ?? "Score"}
                   value={score ?? "–"}
                   valueColor={scoreColor(score, theme)}
                   theme={theme}
@@ -558,9 +919,8 @@ export default function LogEntryScreen({ navigation, route }) {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Footer button */}
       <View style={[s.footer, { paddingBottom: insets.bottom + 16 }]}>
-        {step < 5 ? (
+        {step < 6 ? (
           <TouchableOpacity
             style={[s.primaryBtn, !canGoNext() && s.primaryBtnDisabled]}
             onPress={canGoNext() ? goNext : undefined}
@@ -575,7 +935,7 @@ export default function LogEntryScreen({ navigation, route }) {
             activeOpacity={saving ? 1 : 0.85}
           >
             <Text style={s.primaryBtnText}>
-              {saving ? "Saving…" : (t.save ?? "Save")}
+              {saving ? (t.saving ?? "Saving…") : (t.save ?? "Save")}
             </Text>
           </TouchableOpacity>
         )}
@@ -584,10 +944,46 @@ export default function LogEntryScreen({ navigation, route }) {
   );
 }
 
+function ExerciseRow({ ex, isSelected, theme, s, onPress }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        s.exRow,
+        isSelected ? s.exRowSelected : s.exRowUnselected,
+        pressed && { opacity: 0.7 },
+      ]}
+    >
+      <Text style={[s.exRowName, isSelected && { fontWeight: "700" }]}>
+        {ex.name}
+      </Text>
+      <View
+        style={[
+          s.checkbox,
+          isSelected && {
+            backgroundColor: theme.accent,
+            borderColor: theme.accent,
+          },
+        ]}
+      >
+        {isSelected && <Text style={s.checkmark}>✓</Text>}
+      </View>
+    </Pressable>
+  );
+}
+
 function SummaryRow({ label, value, valueColor, bold, theme }) {
   return (
-    <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 6 }}>
-      <Text style={{ color: theme.textSecondary, fontSize: FontSize.md }}>{label}</Text>
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        paddingVertical: 6,
+      }}
+    >
+      <Text style={{ color: theme.textSecondary, fontSize: FontSize.md }}>
+        {label}
+      </Text>
       <Text
         style={{
           color: valueColor ?? theme.text,
@@ -604,15 +1000,24 @@ function SummaryRow({ label, value, valueColor, bold, theme }) {
 function makeStyles(theme) {
   return StyleSheet.create({
     bg: { flex: 1, backgroundColor: theme.bg },
+
+    // Header (matches Profile/Workouts)
     header: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 12,
-      height: 52,
+      paddingHorizontal: Spacing.lg,
+      paddingBottom: Spacing.lg,
+      backgroundColor: theme.accent,
     },
-    backBtn: { width: 44, padding: 8 },
-    headerTitle: { color: theme.text, fontSize: FontSize.md, fontWeight: "600" },
+    headerBtn: { width: 40, alignItems: "center" },
+    headerTitle: {
+      flex: 1,
+      color: "#fff",
+      fontSize: FontSize.md,
+      fontWeight: "600",
+      textAlign: "center",
+    },
+
     progressTrack: { height: 3, backgroundColor: theme.border },
     progressFill: { height: "100%" },
     scroll: {
@@ -744,14 +1149,80 @@ function makeStyles(theme) {
       fontWeight: "800",
     },
 
-    emptyHint: {
-      padding: Spacing.lg,
-      alignItems: "center",
+    emptyHint: { padding: Spacing.lg, alignItems: "center" },
+    emptyHintText: { color: theme.textMuted, fontSize: FontSize.sm },
+
+    groupHeader: {
+      fontSize: 11,
+      fontWeight: "700",
+      letterSpacing: 0.6,
+      textTransform: "uppercase",
+      color: theme.accent,
+      marginTop: 4,
+      marginBottom: 8,
     },
-    emptyHintText: {
+    groupEmpty: {
       color: theme.textMuted,
       fontSize: FontSize.sm,
+      fontStyle: "italic",
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: Spacing.xs,
     },
+    exRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      borderRadius: Radius.md,
+      marginBottom: 6,
+      borderWidth: 1,
+      backgroundColor: theme.surface,
+    },
+    exRowSelected: { borderColor: theme.accent },
+    exRowUnselected: { borderColor: theme.border },
+    exRowName: {
+      flex: 1,
+      fontSize: FontSize.md,
+      color: theme.text,
+      fontWeight: "500",
+    },
+    checkbox: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      borderColor: theme.border,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: 10,
+    },
+    checkmark: { color: "#fff", fontSize: 14, fontWeight: "700" },
+
+    emptyState: {
+      alignItems: "center",
+      paddingVertical: Spacing.xl * 1.5,
+      paddingHorizontal: Spacing.lg,
+    },
+    emptyTitle: {
+      color: theme.text,
+      fontSize: FontSize.md,
+      fontWeight: "700",
+      marginTop: Spacing.md,
+    },
+    emptyDesc: {
+      color: theme.textSecondary,
+      fontSize: FontSize.sm,
+      textAlign: "center",
+      marginTop: Spacing.xs,
+      marginBottom: Spacing.lg,
+    },
+    emptyBtn: {
+      backgroundColor: theme.accent,
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: 12,
+      borderRadius: Radius.md,
+    },
+    emptyBtnText: { color: "#fff", fontSize: FontSize.md, fontWeight: "700" },
 
     scorePreview: {
       alignItems: "center",

@@ -6,23 +6,21 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  FlatList,
+  Pressable,
   Modal,
   Alert,
   ActivityIndicator,
   StyleSheet,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
 import { getTranslatedCatalog } from "../../lib/exerciseCatalog";
-import {
-  fetchCustomExercises,
-  createCustomExercise,
-  deleteCustomExercise,
-} from "../../api/exercises";
+import { exercisesApi } from "../../services/api";
+import { FontSize, Spacing } from "../../constants/theme";
 
 const CATEGORIES = [
-  { key: "all",      labelKey: "categoryAll" },
   { key: "strength", labelKey: "categoryStrength" },
   { key: "cardio",   labelKey: "categoryCardio" },
   { key: "mobility", labelKey: "categoryMobility" },
@@ -33,22 +31,28 @@ const CATEGORIES = [
 export default function WorkoutsScreen() {
   const { theme } = useTheme();
   const { t } = useLang();
-  const styles = getStyles(theme);
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
+  const styles = getStyles(theme, insets);
 
   const [customExercises, setCustomExercises] = useState([]);
+  const [selectedSlugs, setSelectedSlugs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
   const [showAdd, setShowAdd] = useState(false);
 
   const catalog = useMemo(() => getTranslatedCatalog(t), [t]);
 
   const load = useCallback(async () => {
     try {
-      const res = await fetchCustomExercises();
-      setCustomExercises(res.exercises || []);
+      const [list, slugs] = await Promise.all([
+        exercisesApi.listCustom().catch(() => []),
+        exercisesApi.getSelection().catch(() => []),
+      ]);
+      setCustomExercises(list);
+      setSelectedSlugs(slugs);
     } catch (err) {
-      console.warn("Failed to load custom exercises", err);
+      console.warn("Failed to load exercises", err);
     } finally {
       setLoading(false);
     }
@@ -58,39 +62,65 @@ export default function WorkoutsScreen() {
     load();
   }, [load]);
 
-  const allExercises = useMemo(
-    () => [
-      ...catalog,
-      ...customExercises.map((e) => ({ ...e, isCustom: true })),
-    ],
-    [catalog, customExercises]
-  );
+  const allExercises = useMemo(() => {
+    const catalogItems = catalog.map((c) => ({
+      ...c,
+      isSelected: selectedSlugs.includes(c.slug),
+    }));
+    const customItems = customExercises.map((e) => ({
+      ...e,
+      isCustom: true,
+      isSelected: true,
+    }));
+    return [...catalogItems, ...customItems];
+  }, [catalog, customExercises, selectedSlugs]);
 
   const filtered = useMemo(() => {
     let list = allExercises;
-    if (activeCategory !== "all") {
-      list = list.filter((e) => e.category === activeCategory);
-    }
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter((e) => e.name.toLowerCase().includes(q));
     }
     return list;
-  }, [allExercises, activeCategory, search]);
+  }, [allExercises, search]);
 
-  const grouped = useMemo(() => {
-    if (activeCategory !== "all") return null;
+  const { selectedList, browseList } = useMemo(() => {
+    const sel = filtered.filter((e) => e.isSelected);
+    const browse = filtered.filter((e) => !e.isSelected);
+    return { selectedList: sel, browseList: browse };
+  }, [filtered]);
+
+  const groupedBrowse = useMemo(() => {
     const map = {};
-    for (const e of filtered) (map[e.category] ||= []).push(e);
-    return CATEGORIES.filter((c) => c.key !== "all" && map[c.key]?.length).map(
+    for (const e of browseList) (map[e.category] ||= []).push(e);
+    return CATEGORIES.filter((c) => map[c.key]?.length).map(
       (c) => ({ ...c, items: map[c.key] })
     );
-  }, [filtered, activeCategory]);
+  }, [browseList]);
+
+  const handleToggle = async (item) => {
+    if (item.isCustom) return;
+    const wasSelected = selectedSlugs.includes(item.slug);
+    setSelectedSlugs((prev) =>
+      wasSelected ? prev.filter((s) => s !== item.slug) : [...prev, item.slug]
+    );
+    try {
+      const { selectedSlugs: serverSlugs } = await exercisesApi.toggleSelection(
+        item.slug
+      );
+      setSelectedSlugs(serverSlugs);
+    } catch (err) {
+      setSelectedSlugs((prev) =>
+        wasSelected ? [...prev, item.slug] : prev.filter((s) => s !== item.slug)
+      );
+      console.warn("Toggle failed:", err?.message);
+    }
+  };
 
   const handleAdd = async (name, category) => {
     try {
-      const res = await createCustomExercise({ name, category });
-      setCustomExercises((prev) => [...prev, res.exercise]);
+      const ex = await exercisesApi.createCustom({ name, category });
+      if (ex) setCustomExercises((prev) => [...prev, ex]);
       setShowAdd(false);
     } catch (err) {
       Alert.alert(
@@ -100,7 +130,7 @@ export default function WorkoutsScreen() {
     }
   };
 
-  const handleDelete = (item) => {
+  const handleDeleteCustom = (item) => {
     if (!item.isCustom) return;
     Alert.alert(
       t.deleteExercise ?? "Delete exercise",
@@ -112,15 +142,12 @@ export default function WorkoutsScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await deleteCustomExercise(item._id);
+              await exercisesApi.deleteCustom(item._id);
               setCustomExercises((prev) =>
                 prev.filter((e) => e._id !== item._id)
               );
-            } catch {
-              Alert.alert(
-                t.error ?? "Error",
-                t.exerciseDeleteFailed ?? "Could not delete."
-              );
+            } catch (err) {
+              console.warn("Delete failed:", err?.message);
             }
           },
         },
@@ -128,111 +155,116 @@ export default function WorkoutsScreen() {
     );
   };
 
-  if (loading) {
-    return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color={theme.accent} />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <View style={styles.searchBar}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t.searchExercises ?? "Search exercises…"}
-          placeholderTextColor={theme.textMuted}
-          value={search}
-          onChangeText={setSearch}
-          autoCorrect={false}
-          autoCapitalize="none"
-        />
-        {search.length > 0 && (
-          <TouchableOpacity onPress={() => setSearch("")} hitSlop={10}>
-            <Text style={styles.clearBtn}>✕</Text>
-          </TouchableOpacity>
-        )}
+      {/* ── Header (matches Profile pattern) ── */}
+      <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]}>
+        <TouchableOpacity
+          style={styles.headerBtn}
+          onPress={() => navigation.goBack()}
+          hitSlop={10}
+        >
+          <Text style={styles.headerBack}>‹</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {t.workouts ?? "Workouts"}
+        </Text>
+        <View style={styles.headerBtnRight} />
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipsRow}
-      >
-        {CATEGORIES.map((c) => (
-          <TouchableOpacity
-            key={c.key}
-            onPress={() => setActiveCategory(c.key)}
-            style={[styles.chip, activeCategory === c.key && styles.chipActive]}
-          >
-            <Text
-              style={[
-                styles.chipText,
-                activeCategory === c.key && styles.chipTextActive,
-              ]}
-            >
-              {t[c.labelKey] ?? c.labelKey}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {grouped ? (
-        <FlatList
-          data={grouped}
-          keyExtractor={(g) => g.key}
-          renderItem={({ item: group }) => (
-            <View style={{ marginBottom: 8 }}>
-              <Text style={styles.groupHeader}>
-                {t[group.labelKey] ?? group.labelKey}
-              </Text>
-              {group.items.map((ex) => (
-                <ExerciseRow
-                  key={ex._id}
-                  ex={ex}
-                  styles={styles}
-                  t={t}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </View>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>
-              {t.noExercisesFound ?? "No exercises found."}
-            </Text>
-          }
-          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-        />
+      {loading ? (
+        <View style={[styles.center, { flex: 1 }]}>
+          <ActivityIndicator color={theme.accent} />
+        </View>
       ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(e) => e._id}
-          renderItem={({ item }) => (
-            <ExerciseRow
-              ex={item}
-              styles={styles}
-              t={t}
-              onDelete={handleDelete}
+        <>
+          <View style={styles.searchBar}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder={t.searchExercises ?? "Search exercises…"}
+              placeholderTextColor={theme.textMuted}
+              value={search}
+              onChangeText={setSearch}
+              autoCorrect={false}
+              autoCapitalize="none"
             />
-          )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>
-              {t.noExercisesFound ?? "No exercises found."}
-            </Text>
-          }
-          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-        />
-      )}
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch("")} hitSlop={10}>
+                <Text style={styles.clearBtn}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setShowAdd(true)}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.fabText}>+ {t.addCustom ?? "Add custom"}</Text>
-      </TouchableOpacity>
+          <ScrollView
+            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          >
+            {selectedList.length > 0 && (
+              <View style={{ marginBottom: 20 }}>
+                <Text style={styles.sectionHeader}>
+                  {t.myExercises ?? "My exercises"}{" "}
+                  <Text style={styles.sectionCount}>
+                    ({selectedList.length})
+                  </Text>
+                </Text>
+                {selectedList.map((ex) => (
+                  <ExerciseRow
+                    key={ex._id}
+                    ex={ex}
+                    styles={styles}
+                    t={t}
+                    theme={theme}
+                    onToggle={handleToggle}
+                    onDeleteCustom={handleDeleteCustom}
+                  />
+                ))}
+              </View>
+            )}
+
+            {browseList.length > 0 && (
+              <View>
+                <Text style={styles.sectionHeader}>
+                  {selectedList.length > 0
+                    ? (t.browseAll ?? "Browse all")
+                    : (t.allExercises ?? "All exercises")}
+                </Text>
+
+                {groupedBrowse.map((group) => (
+                  <View key={group.key} style={{ marginBottom: 8 }}>
+                    <Text style={styles.groupHeader}>
+                      {t[group.labelKey] ?? group.labelKey}
+                    </Text>
+                    {group.items.map((ex) => (
+                      <ExerciseRow
+                        key={ex._id}
+                        ex={ex}
+                        styles={styles}
+                        t={t}
+                        theme={theme}
+                        onToggle={handleToggle}
+                        onDeleteCustom={handleDeleteCustom}
+                      />
+                    ))}
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {selectedList.length === 0 && browseList.length === 0 && (
+              <Text style={styles.emptyText}>
+                {t.noExercisesFound ?? "No exercises found."}
+              </Text>
+            )}
+          </ScrollView>
+
+          <TouchableOpacity
+            style={[styles.fab, { bottom: 20 + insets.bottom }]}
+            onPress={() => setShowAdd(true)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.fabText}>+ {t.addCustom ?? "Add custom"}</Text>
+          </TouchableOpacity>
+        </>
+      )}
 
       <AddCustomModal
         visible={showAdd}
@@ -246,21 +278,49 @@ export default function WorkoutsScreen() {
   );
 }
 
-function ExerciseRow({ ex, styles, t, onDelete }) {
+function ExerciseRow({ ex, styles, t, theme, onToggle, onDeleteCustom }) {
+  const isSelected = ex.isSelected;
   return (
-    <View style={styles.row}>
+    <Pressable
+      onPress={() => onToggle(ex)}
+      onLongPress={ex.isCustom ? () => onDeleteCustom(ex) : undefined}
+      style={({ pressed }) => [
+        styles.row,
+        isSelected ? styles.rowSelected : styles.rowUnselected,
+        pressed && styles.rowPressed,
+      ]}
+    >
       <View style={{ flex: 1 }}>
-        <Text style={styles.rowName}>{ex.name}</Text>
+        <Text style={[styles.rowName, isSelected && { fontWeight: "600" }]}>
+          {ex.name}
+        </Text>
         {ex.isCustom && (
           <Text style={styles.rowBadge}>{t.customLabel ?? "Custom"}</Text>
         )}
       </View>
+
       {ex.isCustom && (
-        <TouchableOpacity onPress={() => onDelete(ex)} hitSlop={10}>
+        <TouchableOpacity
+          onPress={() => onDeleteCustom(ex)}
+          hitSlop={10}
+          style={{ paddingHorizontal: 8 }}
+        >
           <Text style={styles.rowDelete}>✕</Text>
         </TouchableOpacity>
       )}
-    </View>
+
+      <View
+        style={[
+          styles.checkbox,
+          isSelected && {
+            backgroundColor: theme.accent,
+            borderColor: theme.accent,
+          },
+        ]}
+      >
+        {isSelected && <Text style={styles.checkmark}>✓</Text>}
+      </View>
+    </Pressable>
   );
 }
 
@@ -305,7 +365,7 @@ function AddCustomModal({ visible, onClose, onSave, styles, theme, t }) {
 
           <Text style={styles.modalLabel}>{t.category ?? "Category"}</Text>
           <View style={styles.modalChips}>
-            {CATEGORIES.filter((c) => c.key !== "all").map((c) => (
+            {CATEGORIES.map((c) => (
               <TouchableOpacity
                 key={c.key}
                 onPress={() => setCategory(c.key)}
@@ -344,10 +404,28 @@ function AddCustomModal({ visible, onClose, onSave, styles, theme, t }) {
   );
 }
 
-const getStyles = (theme) =>
+const getStyles = (theme, insets) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.bg },
     center: { justifyContent: "center", alignItems: "center" },
+
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: Spacing.lg,
+      paddingBottom: Spacing.lg,
+      backgroundColor: theme.accent,
+    },
+    headerBtn: { width: 40 },
+    headerBtnRight: { width: 40, alignItems: "flex-end" },
+    headerBack: { color: "#fff", fontSize: 28, lineHeight: 34 },
+    headerTitle: {
+      flex: 1,
+      color: "#fff",
+      fontSize: FontSize.lg,
+      fontWeight: "600",
+      textAlign: "center",
+    },
 
     searchBar: {
       flexDirection: "row",
@@ -368,19 +446,17 @@ const getStyles = (theme) =>
     },
     clearBtn: { color: theme.textMuted, fontSize: 16, paddingHorizontal: 6 },
 
-    chipsRow: { paddingHorizontal: 16, paddingBottom: 8, gap: 8 },
-    chip: {
-      paddingHorizontal: 14,
-      paddingVertical: 7,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: theme.border,
-      backgroundColor: theme.surface,
-      marginRight: 8,
+    sectionHeader: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: theme.text,
+      marginBottom: 10,
     },
-    chipActive: { backgroundColor: theme.accent, borderColor: theme.accent },
-    chipText: { fontSize: 12, fontWeight: "600", color: theme.text },
-    chipTextActive: { color: "#fff" },
+    sectionCount: {
+      fontSize: 13,
+      fontWeight: "500",
+      color: theme.textMuted,
+    },
 
     groupHeader: {
       fontSize: 11,
@@ -397,12 +473,28 @@ const getStyles = (theme) =>
       alignItems: "center",
       paddingVertical: 12,
       paddingHorizontal: 14,
-      backgroundColor: theme.surface,
       borderRadius: 10,
       marginBottom: 6,
       borderWidth: 1,
-      borderColor: theme.border,
+      backgroundColor: theme.surface,
     },
+    rowSelected: { borderColor: theme.accent },
+    rowUnselected: { borderColor: theme.border },
+    rowPressed: { opacity: 0.7 },
+
+    checkbox: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      borderWidth: 1.5,
+      borderColor: theme.border,
+      backgroundColor: "transparent",
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: 10,
+    },
+    checkmark: { color: "#fff", fontSize: 13, fontWeight: "700" },
+
     rowName: { fontSize: 14, color: theme.text, fontWeight: "500" },
     rowBadge: {
       fontSize: 10,
@@ -410,7 +502,7 @@ const getStyles = (theme) =>
       fontStyle: "italic",
       marginTop: 2,
     },
-    rowDelete: { fontSize: 18, color: theme.textMuted, paddingHorizontal: 6 },
+    rowDelete: { fontSize: 18, color: theme.textMuted },
 
     emptyText: {
       textAlign: "center",
@@ -421,7 +513,6 @@ const getStyles = (theme) =>
 
     fab: {
       position: "absolute",
-      bottom: 20,
       left: 20,
       right: 20,
       backgroundColor: theme.accent,

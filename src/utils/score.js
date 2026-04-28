@@ -1,13 +1,19 @@
-// src/utils/score.js
-// Daily score: rounded average of effort + mood + energy.
-// On rest days, effort is excluded (average of mood + energy only).
+const CATEGORY_ORDER = ["strength", "cardio", "mobility", "recovery", "other"];
 
-// src/utils/score.js (or wherever you keep client-side helpers)
+function groupWorkoutsByCategory(workouts) {
+  const map = {};
+  for (const w of workouts || []) {
+    (map[w.type] ||= []).push(w);
+  }
+  return CATEGORY_ORDER.filter((c) => map[c]?.length).map((c) => ({
+    category: c,
+    items: map[c],
+  }));
+}
 
-/**
- * Convert a 0–100 score to a 1–5 scale for display.
- * Returns null if score is missing.
- */
+function categoryLabel(cat, t) {
+  return t[`category${cat.charAt(0).toUpperCase() + cat.slice(1)}`] ?? cat;
+}
 export function toFiveScale(score) {
   if (typeof score !== "number") return null;
   // 0 → 1, 100 → 5, linear in between
@@ -69,18 +75,29 @@ export function tierForMinutes(minutes) {
 
 export function effortMultiplier(effort) {
   switch (Number(effort)) {
-    case 1: return 0.7;
-    case 2: return 0.85;
-    case 3: return 1.0;
-    case 4: return 1.15;
-    case 5: return 1.3;
-    default: return 1.0;
+    case 1:
+      return 0.7;
+    case 2:
+      return 0.85;
+    case 3:
+      return 1.0;
+    case 4:
+      return 1.15;
+    case 5:
+      return 1.3;
+    default:
+      return 1.0;
   }
 }
 
 export function describeWorkoutScore(entry) {
   if (!entry || entry.isRestDay) {
-    return { points: 0, minutes: 0, tier: "rest", score: entry?.isRestDay ? 60 : 0 };
+    return {
+      points: 0,
+      minutes: 0,
+      tier: "rest",
+      score: entry?.isRestDay ? 60 : 0,
+    };
   }
   const workouts = Array.isArray(entry.workouts) ? entry.workouts : [];
   let rawPoints = 0;
@@ -116,11 +133,17 @@ export function bucketScore(n) {
 // Tier → color (for minutes badges).
 export function tierColor(tierName) {
   switch (tierName) {
-    case "light":    return "#86B8F2";
-    case "moderate": return "#4A7AB5";
-    case "hard":     return "#2D4A6E";
-    case "veryHard": return "#1A2F4A";
-    case "rest":     return "#9CA3AF";
-    default:         return "#D1D5DB";
+    case "light":
+      return "#86B8F2";
+    case "moderate":
+      return "#4A7AB5";
+    case "hard":
+      return "#2D4A6E";
+    case "veryHard":
+      return "#1A2F4A";
+    case "rest":
+      return "#9CA3AF";
+    default:
+      return "#D1D5DB";
   }
 }
