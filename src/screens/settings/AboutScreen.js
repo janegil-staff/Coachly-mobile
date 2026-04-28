@@ -37,7 +37,7 @@ export default function AboutScreen({ navigation }) {
       >
         <View style={s.taglineBlock}>
           <Image
-            source={require("../../../assets/images/logo.png")}
+            source={require("../../../assets/images/coachly-logo.png")}
             style={s.logo}
             resizeMode="contain"
           />
