@@ -37,6 +37,7 @@ import AboutScreen from "../screens/settings/AboutScreen";
 import LanguageScreen from "../screens/settings/LanguageScreen";
 import PersonalSettingsScreen from "../screens/settings/PersonalSettingsScreen";
 
+
 const ONBOARDED_KEY = "@coachly:onboarded";
 
 const Stack = createNativeStackNavigator();

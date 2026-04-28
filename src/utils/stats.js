@@ -1,0 +1,264 @@
+// src/utils/stats.js
+// Pure data aggregation for the Stats screen.
+// No UI, no chart library — just functions that take logs and return chart-ready shapes.
+
+import { describeWorkoutScore } from "./score";
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+const MS_DAY = 24 * 60 * 60 * 1000;
+
+function dateKey(d) {
+  // YYYY-MM-DD
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return yyyy + "-" + mm + "-" + dd;
+}
+
+function startOfDay(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function startOfWeek(d) {
+  // Monday-based week
+  const x = startOfDay(d);
+  const dow = x.getDay(); // 0=Sun, 1=Mon, ...
+  const offset = dow === 0 ? -6 : 1 - dow;
+  x.setDate(x.getDate() + offset);
+  return x;
+}
+
+function avg(nums) {
+  const valid = nums.filter((v) => typeof v === "number" && !Number.isNaN(v));
+  if (!valid.length) return null;
+  return valid.reduce((a, b) => a + b, 0) / valid.length;
+}
+
+// ── Public functions ──────────────────────────────────────────────────────
+
+/**
+ * Spider/radar chart points.
+ * Returns 5 axes averaged over the last `days` days.
+ * Soreness is INVERTED so all axes share the convention "higher = better".
+ *
+ * @returns {{ axis: string, value: number, raw: number }[]}
+ */
+export function radarPoints(logs, days = 14) {
+  const cutoff = Date.now() - days * MS_DAY;
+  const recent = (logs || []).filter((l) => {
+    const t = new Date(l.date).getTime();
+    return Number.isFinite(t) && t >= cutoff;
+  });
+
+  const eff = avg(recent.map((l) => l.effort));
+  const moo = avg(recent.map((l) => l.mood));
+  const ene = avg(recent.map((l) => l.energy));
+  const slp = avg(recent.map((l) => l.sleep));
+  const sor = avg(recent.map((l) => l.soreness));
+
+  return [
+    { axis: "Effort",   value: eff ?? 0, raw: eff },
+    { axis: "Mood",     value: moo ?? 0, raw: moo },
+    { axis: "Energy",   value: ene ?? 0, raw: ene },
+    { axis: "Sleep",    value: slp ?? 0, raw: slp },
+    { axis: "Recovery", value: sor != null ? 6 - sor : 0, raw: sor }, // invert: low soreness = good
+  ];
+}
+
+/**
+ * Single-metric trend over time.
+ * @param {string} key  one of: effort, mood, energy, sleep, soreness, weight
+ */
+export function trendSeries(logs, key, days = 90) {
+  const cutoff = Date.now() - days * MS_DAY;
+  const out = [];
+  const sorted = (logs || []).slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+  for (const l of sorted) {
+    const t = new Date(l.date).getTime();
+    if (!Number.isFinite(t) || t < cutoff) continue;
+    const v = l[key];
+    if (typeof v !== "number") continue;
+    out.push({ x: t, y: v, date: l.date });
+  }
+  return out;
+}
+
+/**
+ * Calendar heatmap cells — last N weeks of intensity (0-100 daily score).
+ * Returns a flat array suitable for a grid layout: weeks × 7 days.
+ */
+export function heatmapCells(logs, scoresByDate, weeks = 26) {
+  const today = startOfDay(new Date());
+  const start = new Date(today);
+  start.setDate(start.getDate() - (weeks * 7 - 1));
+
+  // Snap to Monday-aligned start
+  const aligned = startOfWeek(start);
+
+  const cells = [];
+  const totalDays = Math.round((today - aligned) / MS_DAY) + 1;
+  for (let i = 0; i < totalDays; i++) {
+    const d = new Date(aligned);
+    d.setDate(d.getDate() + i);
+    const key = dateKey(d);
+    const score = scoresByDate?.[key];
+    const log = (logs || []).find((l) => l.date === key);
+    cells.push({
+      date: key,
+      score: typeof score === "number" ? score : null,
+      isRest: !!log?.isRestDay,
+      hasLog: !!log,
+      dow: (d.getDay() + 6) % 7, // Mon=0..Sun=6
+      week: Math.floor(i / 7),
+    });
+  }
+  return { cells, weeks: Math.ceil(totalDays / 7) };
+}
+
+/**
+ * Weekly total minutes (last N weeks). Bars.
+ * @returns {{ weekStart: string, minutes: number, sessions: number }[]}
+ */
+export function weeklyVolume(logs, weeks = 12) {
+  const today = startOfDay(new Date());
+  const cutoff = startOfWeek(new Date(today.getTime() - (weeks - 1) * 7 * MS_DAY));
+  const buckets = new Map();
+
+  for (let i = 0; i < weeks; i++) {
+    const ws = new Date(cutoff);
+    ws.setDate(ws.getDate() + i * 7);
+    buckets.set(dateKey(ws), { minutes: 0, sessions: 0 });
+  }
+
+  for (const l of logs || []) {
+    if (l.isRestDay) continue;
+    const ws = startOfWeek(new Date(l.date));
+    const key = dateKey(ws);
+    if (!buckets.has(key)) continue;
+    const w = (l.workouts || []).reduce((a, b) => a + (Number(b?.durationMinutes) || 0), 0);
+    const b = buckets.get(key);
+    b.minutes += w;
+    b.sessions += (l.workouts || []).length;
+  }
+
+  return Array.from(buckets.entries()).map(([weekStart, v]) => ({
+    weekStart,
+    minutes: v.minutes,
+    sessions: v.sessions,
+  }));
+}
+
+/**
+ * Category breakdown (donut/pie) for the last N days.
+ * @returns {{ category: string, minutes: number, sessions: number, pct: number }[]}
+ */
+export function categoryBreakdown(logs, days = 30) {
+  const cutoff = Date.now() - days * MS_DAY;
+  const totals = new Map();
+
+  for (const l of logs || []) {
+    if (l.isRestDay) continue;
+    const t = new Date(l.date).getTime();
+    if (!Number.isFinite(t) || t < cutoff) continue;
+    for (const w of l.workouts || []) {
+      const cat = (w.category || "other").toLowerCase();
+      const minutes = Number(w?.durationMinutes) || 0;
+      const cur = totals.get(cat) || { minutes: 0, sessions: 0 };
+      cur.minutes += minutes;
+      cur.sessions += 1;
+      totals.set(cat, cur);
+    }
+  }
+
+  const all = Array.from(totals.entries()).map(([category, v]) => ({
+    category,
+    minutes: v.minutes,
+    sessions: v.sessions,
+  }));
+  const totalMinutes = all.reduce((a, b) => a + b.minutes, 0);
+  return all
+    .map((x) => ({ ...x, pct: totalMinutes > 0 ? x.minutes / totalMinutes : 0 }))
+    .sort((a, b) => b.minutes - a.minutes);
+}
+
+/**
+ * Hooper status timeline.
+ * Maps the latest Hooper score per week to a band: fresh/normal/strained/overreaching.
+ * @returns {{ weekStart: string, status: string, total: number | null }[]}
+ */
+export function hooperTimeline(hoopers, weeks = 12) {
+  const today = startOfDay(new Date());
+  const start = startOfWeek(new Date(today.getTime() - (weeks - 1) * 7 * MS_DAY));
+
+  const buckets = new Map();
+  for (let i = 0; i < weeks; i++) {
+    const ws = new Date(start);
+    ws.setDate(ws.getDate() + i * 7);
+    buckets.set(dateKey(ws), { totals: [] });
+  }
+
+  for (const h of hoopers || []) {
+    const ws = startOfWeek(new Date(h.date));
+    const key = dateKey(ws);
+    if (!buckets.has(key)) continue;
+    // Hooper total: stress + sleep + fatigue + soreness + mood (5 items, 1-7 each → 5-35)
+    const total =
+      (Number(h.stress) || 0) +
+      (Number(h.sleep) || 0) +
+      (Number(h.fatigue) || 0) +
+      (Number(h.soreness) || 0) +
+      (Number(h.mood) || 0);
+    if (total > 0) buckets.get(key).totals.push(total);
+  }
+
+  function statusFor(total) {
+    if (total == null) return "none";
+    if (total <= 12) return "fresh";
+    if (total <= 17) return "normal";
+    if (total <= 22) return "strained";
+    return "overreaching";
+  }
+
+  return Array.from(buckets.entries()).map(([weekStart, v]) => {
+    const t = v.totals.length ? v.totals.reduce((a, b) => a + b, 0) / v.totals.length : null;
+    return { weekStart, total: t, status: statusFor(t) };
+  });
+}
+
+/**
+ * Weight series — daily weight values over last N days.
+ * @returns {{ x: number, y: number, date: string }[]}
+ */
+export function weightSeries(logs, days = 90) {
+  return trendSeries(logs, "weightKg", days);
+}
+
+// ── Headline numbers (for stat cards above the charts) ────────────────────
+
+export function summaryNumbers(logs, days = 30) {
+  const cutoff = Date.now() - days * MS_DAY;
+  const recent = (logs || []).filter((l) => new Date(l.date).getTime() >= cutoff);
+  const sessions = recent.reduce(
+    (a, l) => a + ((l.workouts || []).length),
+    0
+  );
+  const minutes = recent.reduce(
+    (a, l) =>
+      a + (l.workouts || []).reduce((s, w) => s + (Number(w?.durationMinutes) || 0), 0),
+    0
+  );
+  const restDays = recent.filter((l) => l.isRestDay).length;
+  const avgEffort = avg(recent.map((l) => l.effort));
+  const avgMood = avg(recent.map((l) => l.mood));
+  return {
+    sessions,
+    minutes,
+    restDays,
+    avgEffort,
+    avgMood,
+    daysCovered: recent.length,
+  };
+}

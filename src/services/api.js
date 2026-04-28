@@ -208,7 +208,26 @@ export const workoutsApi = {
     return data?.workout ?? null;
   },
 };
-
+export const exercisesApi = {
+  listCustom: async () => {
+    const data = await request("GET", "/api/exercises/custom");
+    return data?.exercises ?? [];
+  },
+  createCustom: async ({ name, category }) => {
+    const data = await request("POST", "/api/exercises/custom", {
+      name,
+      category,
+    });
+    return data?.exercise ?? null;
+  },
+  updateCustom: async (id, patch) => {
+    const data = await request("PATCH", `/api/exercises/custom/${id}`, patch);
+    return data?.exercise ?? null;
+  },
+  deleteCustom: async (id) => {
+    return request("DELETE", `/api/exercises/custom/${id}`);
+  },
+};
 // Don't forget to add `workoutsApi` to the default export object too:
 //
 // export default { authApi, logsApi, scoresApi, workoutsApi, setAuthToken };
