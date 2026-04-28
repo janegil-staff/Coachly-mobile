@@ -75,7 +75,7 @@ export default function LoginScreen({ navigation }) {
           {/* Logo + wordmark */}
           <View style={s.logoWrap}>
             <Image
-              source={require("../../../assets/images/logo.png")}
+              source={require("../../../assets/images/coachly-logo.png")}
               style={s.logo}
               resizeMode="contain"
             />
