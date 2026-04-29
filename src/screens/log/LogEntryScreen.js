@@ -1,13 +1,4 @@
-// src/screens/log/LogEntryScreen.js
-// 6-step wizard:
-//   Step 1: Rest day toggle
-//   Step 2: Ratings
-//   Step 3: Categories + duration per category (REQUIRED minutes)
-//   Step 4: Exercises within picked categories (OPTIONAL)
-//   Step 5: Weight
-//   Step 6: Notes + review
-
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -23,7 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-
+import { useFocusEffect } from "@react-navigation/native";
 import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
 import { useLogs } from "../../context/LogsContext";
@@ -78,9 +69,11 @@ export default function LogEntryScreen({ navigation, route }) {
   const [myExercises, setMyExercises] = useState([]);
   const [loadingExercises, setLoadingExercises] = useState(true);
 
-  // Load library
-  useEffect(() => {
+ // Load library — re-runs every time screen regains focus
+useFocusEffect(
+  useCallback(() => {
     let cancelled = false;
+    setLoadingExercises(true);
     (async () => {
       try {
         const [customs, slugs] = await Promise.all([
@@ -117,8 +110,8 @@ export default function LogEntryScreen({ navigation, route }) {
     return () => {
       cancelled = true;
     };
-  }, [t]);
-
+  }, [t]),
+);
   // Prefill from existing log
   useEffect(() => {
     const existing = getLogForDate ? getLogForDate(entryDate) : null;

@@ -130,19 +130,21 @@ export default function PinSetupScreen({ navigation, route }) {
         onPress={() => inputRef.current?.focus()}
         activeOpacity={1}
       >
-        {[0, 1, 2, 3].map((i) => (
-          <View
-            key={i}
-            style={[
-              s.dot,
-              {
-                backgroundColor:
-                  i < pin.length ? theme.accent : "transparent",
-                borderColor: theme.border,
-              },
-            ]}
-          />
-        ))}
+        {[0, 1, 2, 3].map((i) => {
+          const filled = i < pin.length;
+          return (
+            <View
+              key={i}
+              style={[
+                s.dot,
+                {
+                  backgroundColor: filled ? theme.accent : theme.surface,
+                  borderColor: filled ? theme.accent : theme.accent + "55",
+                },
+              ]}
+            />
+          );
+        })}
       </TouchableOpacity>
 
       <View style={s.errorRow}>
@@ -196,7 +198,7 @@ function makeStyles(theme) {
       paddingHorizontal: 32,
       paddingVertical: 16,
     },
-    dot: { width: 20, height: 20, borderRadius: 10, borderWidth: 2 },
+    dot: { width: 22, height: 22, borderRadius: 11, borderWidth: 2 },
     errorRow: {
       height: 24,
       justifyContent: "center",

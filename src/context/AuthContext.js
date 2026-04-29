@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+// src/context/AuthContext.js
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import * as SecureStore from "expo-secure-store";
 import { authApi } from "../services/api";
 
@@ -10,11 +11,21 @@ export function AuthProvider({ children }) {
   const [pinVerified, setPinVerified] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
 
+  // Tracks whether the user manually authed (login/register) before the
+  // initial getMe() resolves, so we don't clobber a fresh user with null.
+  const authedManually = useRef(false);
+
   useEffect(() => {
     authApi
       .getMe()
-      .then((u) => setUser(u ?? null))
-      .catch(() => setUser(null))
+      .then((u) => {
+        if (authedManually.current) return; // user just registered/logged in
+        setUser(u ?? null);
+      })
+      .catch(() => {
+        if (authedManually.current) return;
+        setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -28,6 +39,7 @@ export function AuthProvider({ children }) {
       if (pin !== storedPin) throw new Error("Incorrect PIN");
       const u = await authApi.getMe();
       if (u) {
+        authedManually.current = true;
         setPinVerified(true);
         setUser(u);
         return u;
@@ -35,8 +47,10 @@ export function AuthProvider({ children }) {
     }
 
     const u = await authApi.login({ email: cleanEmail, password: pin });
+    if (!u) throw new Error("Login failed: no user returned");
     await SecureStore.setItemAsync("userPin", pin);
     await SecureStore.setItemAsync("userEmail", cleanEmail);
+    authedManually.current = true;
     setPinVerified(true);
     setUser(u);
     return u;
@@ -64,11 +78,20 @@ export function AuthProvider({ children }) {
       heightCm: height != null ? Number(height) : undefined,
       weightKg: weight != null ? Number(weight) : undefined,
     });
+
+    if (!u) {
+      throw new Error("Registration failed: no user returned");
+    }
+
     await SecureStore.setItemAsync("userEmail", cleanEmail);
     await SecureStore.setItemAsync("userPin", password);
+
+    // Mark that we've authed manually so the in-flight getMe() doesn't reset us.
+    authedManually.current = true;
     setIsNewUser(true);
     setPinVerified(true);
     setUser(u);
+    setLoading(false); // in case register completed before initial getMe()
     return u;
   };
 
@@ -84,7 +107,9 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     await authApi.logout();
+    authedManually.current = false;
     setPinVerified(false);
+    setIsNewUser(false);
     setUser(null);
   };
 
@@ -92,7 +117,9 @@ export function AuthProvider({ children }) {
     await authApi.logout();
     await SecureStore.deleteItemAsync("userPin").catch(() => {});
     await SecureStore.deleteItemAsync("userEmail").catch(() => {});
+    authedManually.current = false;
     setPinVerified(false);
+    setIsNewUser(false);
     setUser(null);
   };
 

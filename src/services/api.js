@@ -46,8 +46,8 @@ async function saveSession(data) {
     await SecureStore.setItemAsync(TOKEN_KEY, data.accessToken);
   if (data?.refreshToken)
     await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken);
-  if (data?.user)
-    await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  const u = data?.user ?? (data?._id ? data : null);
+  if (u) await AsyncStorage.setItem(USER_KEY, JSON.stringify(u));
 }
 
 async function clearSession() {
@@ -85,13 +85,24 @@ export const authApi = {
       ...(weightKg != null ? { weightKg } : {}),
     });
     await saveSession(data);
-    return data.user;
+    // Be defensive about response shape — backend may return either:
+    //   { user: {...}, accessToken, refreshToken }
+    // or the user object directly (with _id at root).
+    const u = data?.user ?? (data?._id ? data : null);
+    if (!u) {
+      throw new Error("Registration succeeded but no user returned");
+    }
+    return u;
   },
 
   login: async ({ email, password }) => {
     const data = await request("POST", "/api/auth/login", { email, password });
     await saveSession(data);
-    return data.user;
+    const u = data?.user ?? (data?._id ? data : null);
+    if (!u) {
+      throw new Error("Login succeeded but no user returned");
+    }
+    return u;
   },
 
   getMe: async () => {
@@ -114,7 +125,6 @@ export const authApi = {
   },
 
   updateProfile: async (fields) => {
-    // Accepts { gender, age, heightCm, weightKg } — any subset.
     const data = await request("PATCH", "/api/auth/me", fields);
     return data?.user ?? data;
   },
@@ -132,7 +142,6 @@ export const authApi = {
       oldPassword,
       newPassword,
     });
-    // Server rotates tokens — persist the new ones so future requests auth.
     await saveSession(data);
     return data;
   },
@@ -172,15 +181,11 @@ export const scoresApi = {
     if (to) qs.push(`to=${to}`);
     const suffix = qs.length ? `?${qs.join("&")}` : "";
     const data = await request("GET", `/api/scores${suffix}`);
-    // Controller returns { success: true, data: [...] }
     return data?.data ?? data?.scores ?? [];
   },
 };
 
-// Add this to src/services/api.js alongside scoresApi, logsApi, etc.
-
 export const workoutsApi = {
-  /** Returns { today: [...], upcoming: [...], past: [...] } */
   listUpcoming: async () => {
     const data = await request("GET", "/api/workouts/upcoming");
     return {
@@ -210,7 +215,6 @@ export const workoutsApi = {
 };
 
 export const exercisesApi = {
-  // Custom exercises
   listCustom: async () => {
     const data = await request("GET", "/api/exercises/custom");
     return data?.exercises ?? [];
@@ -230,7 +234,6 @@ export const exercisesApi = {
     return request("DELETE", `/api/exercises/custom/${id}`);
   },
 
-  // Catalog selection
   getSelection: async () => {
     const data = await request("GET", "/api/exercises/selection");
     return data?.selectedSlugs ?? [];
@@ -249,12 +252,10 @@ export const exercisesApi = {
     return data?.selectedSlugs ?? [];
   },
 };
-// Don't forget to add `workoutsApi` to the default export object too:
-//
-// export default { authApi, logsApi, scoresApi, workoutsApi, setAuthToken };
+
 export function setAuthToken(_token) {}
 
-export default { authApi, logsApi, scoresApi, setAuthToken };
+export default { authApi, logsApi, scoresApi, workoutsApi, setAuthToken };
 
 export const shareApi = {
   create: async ({ includeNotes = true } = {}) => {

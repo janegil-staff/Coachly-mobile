@@ -37,7 +37,6 @@ import AboutScreen from "../screens/settings/AboutScreen";
 import LanguageScreen from "../screens/settings/LanguageScreen";
 import PersonalSettingsScreen from "../screens/settings/PersonalSettingsScreen";
 
-
 const ONBOARDED_KEY = "@coachly:onboarded";
 
 const Stack = createNativeStackNavigator();
@@ -129,35 +128,36 @@ export default function AppNavigator() {
 
   if (authLoading || onboarded === null) return null;
 
+  // Decide which stack to show
+  let activeKey;
+  let activeStack;
+
   if (!onboarded) {
-    return (
-      <NavigationContainer theme={navTheme}>
-        <OnboardingStack onDone={handleOnboardingDone} />
-      </NavigationContainer>
-    );
-  }
-
-  if (!user) {
-    return (
-      <NavigationContainer theme={navTheme}>
-        <AuthStack />
-      </NavigationContainer>
-    );
-  }
-
-  // User logged in but PIN not verified this session
-  if (!pinVerified) {
+    activeKey = "onboarding";
+    activeStack = <OnboardingStack onDone={handleOnboardingDone} />;
+  } else if (!user) {
+    activeKey = "auth";
+    activeStack = <AuthStack />;
+  } else if (!pinVerified) {
+    // Render PinVerify as a full-screen, no NavigationContainer needed
     return (
       <PinVerifyScreen
         onSuccess={() => setPinVerified(true)}
         onFallback={() => setPinVerified(true)}
       />
     );
+  } else {
+    activeKey = "app";
+    activeStack = <AppStack />;
   }
 
+  // The `key` prop forces a fresh NavigationContainer mount when the user's
+  // auth state changes (e.g. after registering or logging in). Without this,
+  // navigation state can leak between stacks — for example, the Register →
+  // PinSetup → PinConfirm history could carry over into the AppStack mount.
   return (
-    <NavigationContainer theme={navTheme}>
-      <AppStack />
+    <NavigationContainer key={activeKey} theme={navTheme}>
+      {activeStack}
     </NavigationContainer>
   );
 }
