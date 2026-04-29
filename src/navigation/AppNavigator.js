@@ -29,6 +29,7 @@ import WorkoutsScreen from "../screens/workouts/WorkoutsScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import AdviceScreen from "../screens/advice/AdviceScreen";
 import ShareScreen from "../screens/share/ShareScreen";
+import StudiesScreen from "../screens/studies/StudiesScreen";
 import QuestionnaireHubScreen from "../screens/questionnaires/QuestionnaireHubScreen";
 import HooperScreen from "../screens/questionnaires/HooperScreen";
 import RestqScreen from "../screens/questionnaires/RestqScreen";
@@ -77,6 +78,7 @@ function AppStack() {
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Advice" component={AdviceScreen} />
       <Stack.Screen name="Share" component={ShareScreen} />
+      <Stack.Screen name="Studies" component={StudiesScreen} />
       <Stack.Screen name="QuestionnaireHub" component={QuestionnaireHubScreen} />
       <Stack.Screen name="Hooper" component={HooperScreen} />
       <Stack.Screen name="Restq" component={RestqScreen} />
@@ -128,7 +130,6 @@ export default function AppNavigator() {
 
   if (authLoading || onboarded === null) return null;
 
-  // Decide which stack to show
   let activeKey;
   let activeStack;
 
@@ -139,7 +140,6 @@ export default function AppNavigator() {
     activeKey = "auth";
     activeStack = <AuthStack />;
   } else if (!pinVerified) {
-    // Render PinVerify as a full-screen, no NavigationContainer needed
     return (
       <PinVerifyScreen
         onSuccess={() => setPinVerified(true)}
@@ -151,10 +151,6 @@ export default function AppNavigator() {
     activeStack = <AppStack />;
   }
 
-  // The `key` prop forces a fresh NavigationContainer mount when the user's
-  // auth state changes (e.g. after registering or logging in). Without this,
-  // navigation state can leak between stacks — for example, the Register →
-  // PinSetup → PinConfirm history could carry over into the AppStack mount.
   return (
     <NavigationContainer key={activeKey} theme={navTheme}>
       {activeStack}

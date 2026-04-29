@@ -115,7 +115,7 @@ export default function PinSetupScreen({ navigation, route }) {
 
       <View style={s.logoWrap}>
         <Image
-          source={require("../../../assets/images/logo.png")}
+          source={require("../../../assets/images/coachly-logo.png")}
           style={s.logo}
           resizeMode="contain"
         />

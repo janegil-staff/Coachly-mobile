@@ -1,7 +1,7 @@
 // src/screens/questionnaires/QuestionnaireHubScreen.js
 // Landing for the Questionnaire tab: shows Hooper (daily) and RESTQ (periodic).
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
 import { questionnairesApi } from "../../services/api";
 import { FontSize, Spacing, Radius } from "../../constants/theme";
+import ShareTabBar from "../share/ShareTabBar";
 
 function formatDate(dateStr) {
   if (!dateStr) return null;
@@ -118,6 +119,8 @@ export default function QuestionnaireHubScreen({ navigation }) {
           />
         </ScrollView>
       )}
+
+      <ShareTabBar active="questionnaire" navigation={navigation} />
     </View>
   );
 }

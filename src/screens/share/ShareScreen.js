@@ -18,20 +18,14 @@ import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
 import { shareApi } from "../../services/api";
 import { styles, TOTAL_SECONDS, SHARE_DOMAIN } from "./shareStyles";
-import {
-  ArcTimer,
-  BrandBubble,
-  IconCode,
-  IconQuestionnaire,
-  IconStudies,
-} from "./shareComponents";
+import { ArcTimer, BrandBubble } from "./shareComponents";
+import ShareTabBar from "./ShareTabBar";
 
 export default function ShareScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useLang();
   const insets = useSafeAreaInsets();
   const PRIMARY = theme?.accent ?? "#4A7AB5";
-  const MUTED = "#a0b8d0";
 
   const [code, setCode] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(TOTAL_SECONDS);
@@ -78,7 +72,7 @@ export default function ShareScreen({ navigation }) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const shareCode = () => {
@@ -87,23 +81,6 @@ export default function ShareScreen({ navigation }) {
     Share.share({
       message: `${t.shareCodeMsg ?? "Your Coachly share code"}: ${code}\n\n${url}`,
     });
-  };
-
-  const tabs = [
-    { key: "code", label: t.shareTabCode ?? "Code", Icon: IconCode },
-    { key: "questionnaire", label: t.shareTabQuestionnaire ?? "Questionnaire", Icon: IconQuestionnaire },
-    { key: "studies", label: t.shareTabStudies ?? "Studies", Icon: IconStudies },
-  ];
-
-  const handleTab = (key) => {
-    if (key === "code") return;
-    if (key === "questionnaire") navigation.navigate("QuestionnaireHub");
-    if (key === "studies") {
-      Alert.alert(
-        t.comingSoon ?? "Coming soon",
-        t.studiesComingSoon ?? "Studies feature is coming soon."
-      );
-    }
   };
 
   return (
@@ -194,35 +171,7 @@ export default function ShareScreen({ navigation }) {
         </View>
       </ScrollView>
 
-      {/* Bottom tab bar */}
-      <View style={styles.tabBarWrapper}>
-        <View style={[styles.tabBar, { paddingBottom: insets.bottom + 8 }]}>
-          {tabs.map(({ key, label, Icon }) => {
-            const active = key === "code";
-            return (
-              <TouchableOpacity
-                key={key}
-                style={styles.tabBtn}
-                onPress={() => handleTab(key)}
-                activeOpacity={0.7}
-              >
-                <Icon color={active ? PRIMARY : MUTED} size={24} />
-                <Text
-                  style={[
-                    styles.tabLabel,
-                    {
-                      color: active ? PRIMARY : MUTED,
-                      fontWeight: active ? "700" : "500",
-                    },
-                  ]}
-                >
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+      <ShareTabBar active="code" navigation={navigation} />
     </View>
   );
 }

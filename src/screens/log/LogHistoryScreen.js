@@ -22,6 +22,13 @@ import { FontSize } from "../../constants/theme";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
+const CATEGORY_ORDER = ["strength", "cardio", "mobility", "recovery", "other"];
+
+function categoryLabel(cat, t) {
+  if (!cat) return "";
+  return t["category" + cat[0].toUpperCase() + cat.slice(1)] ?? cat;
+}
+
 // Bucket backend 0-100 composite score into UI 1-5
 function bucketScore(score0to100) {
   if (score0to100 == null) return null;
@@ -67,6 +74,61 @@ function firstWeekday(y, m) {
 
 function toDateStr(y, m, d) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+// Build a list of { category, durationMinutes, exercises[] } from a log entry.
+// Handles both new shape (categoryDurations + workouts-as-exercises) and
+// legacy shape (workouts with durationMinutes inline).
+function buildWorkoutRows(log) {
+  if (!log) return [];
+
+  const fromCategoryDurations = Array.isArray(log.categoryDurations)
+    ? log.categoryDurations
+    : [];
+
+  // Map of category -> exercise names from log.workouts
+  const exercisesByCat = {};
+  if (Array.isArray(log.workouts)) {
+    for (const w of log.workouts) {
+      if (!w?.type) continue;
+      if (!w.name && !w.exerciseSlug && !w.exerciseId) continue; // skip placeholder rows
+      (exercisesByCat[w.type] ||= []).push(w.name ?? "");
+    }
+  }
+
+  // New shape: one row per categoryDuration entry.
+  if (fromCategoryDurations.length) {
+    const ordered = [...fromCategoryDurations].sort(
+      (a, b) =>
+        CATEGORY_ORDER.indexOf(a.type) - CATEGORY_ORDER.indexOf(b.type),
+    );
+    return ordered.map((c) => ({
+      category: c.type,
+      durationMinutes: c.durationMinutes ?? 0,
+      exercises: exercisesByCat[c.type] ?? [],
+    }));
+  }
+
+  // Legacy shape: workouts had inline durationMinutes — sum per category and
+  // surface no exercise sub-list.
+  if (Array.isArray(log.workouts) && log.workouts.length > 0) {
+    const byType = {};
+    for (const w of log.workouts) {
+      if (!w?.type) continue;
+      byType[w.type] = (byType[w.type] ?? 0) + (w.durationMinutes ?? 0);
+    }
+    return Object.entries(byType)
+      .sort(
+        ([a], [b]) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b),
+      )
+      .map(([type, durationMinutes]) => ({
+        category: type,
+        durationMinutes,
+        exercises: [],
+      }));
+  }
+
+  return [];
 }
 
 // ── Calendar tab ──────────────────────────────────────────────────────────
@@ -443,19 +505,6 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
     return `${d.getDate()} ${mShort} '${String(d.getFullYear()).slice(2)}`;
   };
 
-  const workoutSummary = (log) => {
-    if (log.isRestDay) return t.restDay ?? "Rest day";
-    if (!log.workouts?.length) return "—";
-    return log.workouts
-      .map(
-        (w) =>
-          `${
-            t["category" + w.type[0].toUpperCase() + w.type.slice(1)] ?? w.type
-          } ${w.durationMinutes}m`,
-      )
-      .join(", ");
-  };
-
   return (
     <FlatList
       data={sections}
@@ -502,6 +551,11 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
               item.logs.map((log) => {
                 const bucket = bucketScore(scoresByDate[log.date]);
                 const dotColor = bucket != null ? scoreColor(bucket) : "#b3cde8";
+                const rows = buildWorkoutRows(log);
+                const totalMin = rows.reduce(
+                  (s, r) => s + (r.durationMinutes || 0),
+                  0,
+                );
                 return (
                   <TouchableOpacity
                     key={log.date}
@@ -524,9 +578,61 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
                     </View>
 
                     <View style={{ flex: 1 }}>
-                      <Text style={[diary.rowPrimary, { color: NAVY }]}>
-                        {workoutSummary(log)}
-                      </Text>
+                      {log.isRestDay ? (
+                        <Text style={[diary.rowPrimary, { color: NAVY }]}>
+                          {t.restDay ?? "Rest day"}
+                        </Text>
+                      ) : rows.length === 0 ? (
+                        <Text style={[diary.rowPrimary, { color: NAVY }]}>—</Text>
+                      ) : (
+                        <>
+                          {rows.map((r) => (
+                            <View key={r.category} style={diary.workoutBlock}>
+                              <View style={diary.workoutHeader}>
+                                <Text
+                                  style={[diary.workoutCat, { color: NAVY }]}
+                                >
+                                  {categoryLabel(r.category, t)}
+                                </Text>
+                                <Text
+                                  style={[
+                                    diary.workoutDuration,
+                                    { color: theme.accent ?? "#4A7AB5" },
+                                  ]}
+                                >
+                                  {r.durationMinutes}
+                                  {t.minutesShort ?? "m"}
+                                </Text>
+                              </View>
+                              {r.exercises.length > 0 && (
+                                <View style={{ marginTop: 2 }}>
+                                  {r.exercises.map((name, idx) => (
+                                    <Text
+                                      key={idx}
+                                      style={[diary.exerciseItem, { color: MUTED }]}
+                                      numberOfLines={1}
+                                    >
+                                      • {name}
+                                    </Text>
+                                  ))}
+                                </View>
+                              )}
+                            </View>
+                          ))}
+                          {rows.length > 1 && (
+                            <Text
+                              style={[
+                                diary.totalLine,
+                                { color: theme.accent ?? "#4A7AB5" },
+                              ]}
+                            >
+                              {t.totalLabel ?? "Total"}: {totalMin}
+                              {t.minutesShort ?? "m"}
+                            </Text>
+                          )}
+                        </>
+                      )}
+
                       <View style={diary.statsRow}>
                         {log.effort != null && (
                           <Stat label={t.effort ?? "Effort"} value={log.effort} />
@@ -632,7 +738,29 @@ const diary = StyleSheet.create({
   },
   dayBadgeSore: { position: "absolute", bottom: -6, left: -6, fontSize: 13 },
   rowPrimary: { fontSize: 14, fontWeight: "700", marginBottom: 6 },
-  statsRow: { flexDirection: "row", flexWrap: "wrap", rowGap: 2 },
+
+  workoutBlock: { marginBottom: 6 },
+  workoutHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "baseline",
+  },
+  workoutCat: { fontSize: 14, fontWeight: "700" },
+  workoutDuration: { fontSize: 13, fontWeight: "700", marginLeft: 8 },
+  exerciseItem: { fontSize: 12, lineHeight: 18 },
+  totalLine: {
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: 4,
+    marginBottom: 4,
+  },
+
+  statsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    rowGap: 2,
+    marginTop: 6,
+  },
   note: { fontSize: 13, marginTop: 4, fontStyle: "italic" },
   dateText: { fontSize: 12, fontWeight: "500" },
 });

@@ -46,7 +46,7 @@ export default function LogEntryScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { t } = useLang();
   const insets = useSafeAreaInsets();
-  const { saveLog, getLogForDate, deleteLog } = useLogs();
+  const { logs, fetchLogs, saveLog, deleteLog } = useLogs();
   const { user, updateUser } = useAuth();
   const s = makeStyles(theme);
 
@@ -66,77 +66,102 @@ export default function LogEntryScreen({ navigation, route }) {
   const [weightKg, setWeightKg] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Prefill once when the existing log appears (logs may load async).
+  const [prefilled, setPrefilled] = useState(false);
+
   const [myExercises, setMyExercises] = useState([]);
   const [loadingExercises, setLoadingExercises] = useState(true);
 
- // Load library — re-runs every time screen regains focus
-useFocusEffect(
-  useCallback(() => {
-    let cancelled = false;
-    setLoadingExercises(true);
-    (async () => {
-      try {
-        const [customs, slugs] = await Promise.all([
-          exercisesApi.listCustom().catch(() => []),
-          exercisesApi.getSelection().catch(() => []),
-        ]);
-        if (cancelled) return;
-
-        const catalog = getTranslatedCatalog(t);
-        const catalogSelected = catalog
-          .filter((c) => slugs.includes(c.slug))
-          .map((c) => ({
-            type: c.category,
-            exerciseSlug: c.slug,
-            exerciseId: null,
-            name: c.name,
-            _id: `catalog:${c.slug}`,
-          }));
-        const customItems = customs.map((c) => ({
-          type: c.category,
-          exerciseSlug: null,
-          exerciseId: c._id,
-          name: c.name,
-          _id: c._id,
-        }));
-
-        setMyExercises([...catalogSelected, ...customItems]);
-      } catch (err) {
-        console.warn("Failed to load exercises", err);
-      } finally {
-        if (!cancelled) setLoadingExercises(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [t]),
-);
-  // Prefill from existing log
+  // Safety net — make sure logs are loaded if user got here without going
+  // through HomeScreen first.
   useEffect(() => {
-    const existing = getLogForDate ? getLogForDate(entryDate) : null;
-    if (!existing) {
+    if (fetchLogs && (!logs || logs.length === 0)) {
+      fetchLogs();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Load library — re-runs every time screen regains focus
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      setLoadingExercises(true);
+      (async () => {
+        try {
+          const [customs, slugs] = await Promise.all([
+            exercisesApi.listCustom().catch(() => []),
+            exercisesApi.getSelection().catch(() => []),
+          ]);
+          if (cancelled) return;
+
+          const catalog = getTranslatedCatalog(t);
+          const catalogSelected = catalog
+            .filter((c) => slugs.includes(c.slug))
+            .map((c) => ({
+              type: c.category,
+              exerciseSlug: c.slug,
+              exerciseId: null,
+              name: c.name,
+              _id: `catalog:${c.slug}`,
+            }));
+          const customItems = customs.map((c) => ({
+            type: c.category,
+            exerciseSlug: null,
+            exerciseId: c._id,
+            name: c.name,
+            _id: c._id,
+          }));
+
+          setMyExercises([...catalogSelected, ...customItems]);
+        } catch (err) {
+          console.warn("Failed to load exercises", err);
+        } finally {
+          if (!cancelled) setLoadingExercises(false);
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [t]),
+  );
+
+  // Reactive lookup — re-evaluates whenever `logs` updates.
+  const existingLog = useMemo(
+    () => (logs || []).find((l) => l.date === entryDate) ?? null,
+    [logs, entryDate],
+  );
+
+  // Reset prefill flag if the user navigates to a different date in the same
+  // mounted instance.
+  useEffect(() => {
+    setPrefilled(false);
+  }, [entryDate]);
+
+  // Prefill from existing log — runs once when the log becomes available.
+  useEffect(() => {
+    if (prefilled) return;
+    if (!existingLog) {
       setIsExisting(false);
       return;
     }
     setIsExisting(true);
 
-    if (typeof existing.isRestDay === "boolean")
-      setIsRestDay(existing.isRestDay);
+    if (typeof existingLog.isRestDay === "boolean")
+      setIsRestDay(existingLog.isRestDay);
 
-    if (Array.isArray(existing.categoryDurations)) {
+    if (Array.isArray(existingLog.categoryDurations)) {
       setCategoryDurations(
-        existing.categoryDurations.map((c) => ({
+        existingLog.categoryDurations.map((c) => ({
           type: c.type,
           durationMinutes: c.durationMinutes ?? 30,
         })),
       );
     } else if (
-      Array.isArray(existing.workouts) &&
-      existing.workouts.length > 0
+      Array.isArray(existingLog.workouts) &&
+      existingLog.workouts.length > 0
     ) {
       const byType = {};
-      for (const w of existing.workouts) {
+      for (const w of existingLog.workouts) {
         if (!w?.type) continue;
         if (w.durationMinutes != null) {
           byType[w.type] = Math.max(
@@ -154,8 +179,8 @@ useFocusEffect(
       if (durations.length) setCategoryDurations(durations);
     }
 
-    if (Array.isArray(existing.workouts)) {
-      const exercises = existing.workouts
+    if (Array.isArray(existingLog.workouts)) {
+      const exercises = existingLog.workouts
         .filter((w) => w.exerciseSlug || w.exerciseId || w.name)
         .map((w) => ({
           type: w.type,
@@ -169,14 +194,17 @@ useFocusEffect(
       setWorkouts(exercises);
     }
 
-    if (existing.effort != null) setEffort(existing.effort);
-    if (existing.mood != null) setMood(existing.mood);
-    if (existing.energy != null) setEnergy(existing.energy);
-    if (existing.sleepQuality != null) setSleep(existing.sleepQuality);
-    if (existing.soreness != null) setSoreness(existing.soreness);
-    if (existing.note != null) setNotes(existing.note);
-    if (existing.weightKg != null) setWeightKg(String(existing.weightKg));
-  }, [entryDate]);
+    if (existingLog.effort != null) setEffort(existingLog.effort);
+    if (existingLog.mood != null) setMood(existingLog.mood);
+    if (existingLog.energy != null) setEnergy(existingLog.energy);
+    if (existingLog.sleepQuality != null) setSleep(existingLog.sleepQuality);
+    if (existingLog.soreness != null) setSoreness(existingLog.soreness);
+    if (existingLog.note != null) setNotes(existingLog.note);
+    if (existingLog.weightKg != null)
+      setWeightKg(String(existingLog.weightKg));
+
+    setPrefilled(true);
+  }, [existingLog, prefilled]);
 
   useEffect(() => {
     const profileWeight = user?.clientProfile?.weightKg;
@@ -188,11 +216,15 @@ useFocusEffect(
 
   const totalSteps = isRestDay ? 4 : 6;
   const displayStep = isRestDay
-    ? step === 1 ? 1
-      : step === 2 ? 2
-      : step === 5 ? 3
-      : step === 6 ? 4
-      : step
+    ? step === 1
+      ? 1
+      : step === 2
+        ? 2
+        : step === 5
+          ? 3
+          : step === 6
+            ? 4
+            : step
     : step;
 
   const totalDuration = categoryDurations.reduce(
