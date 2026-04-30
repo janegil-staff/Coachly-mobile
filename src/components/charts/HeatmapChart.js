@@ -6,6 +6,10 @@ import Svg, { Rect } from "react-native-svg";
 const CELL = 12;
 const GAP = 3;
 
+/**
+ * Map a 0-100 score to a colour band.
+ * Returns the empty grey for null/undefined.
+ */
 function colorFor(score, accent) {
   if (score == null) return "#E5E7EB";
   if (score >= 80) return accent;
@@ -16,10 +20,18 @@ function colorFor(score, accent) {
 }
 
 export default function HeatmapChart({ cells, weeks, theme }) {
-  if (!cells || cells.length === 0) {
+  // Check if ANY cell has data — not just whether the cells array exists.
+  // (heatmapCells always returns the full grid, even when there are no logs.)
+  const hasAnyData =
+    Array.isArray(cells) &&
+    cells.some((c) => c.hasLog || c.score != null);
+
+  if (!hasAnyData) {
     return (
       <View style={styles.empty}>
-        <Text style={[styles.emptyText, { color: theme.textMuted }]}>No data yet</Text>
+        <Text style={[styles.emptyText, { color: theme.textMuted }]}>
+          No data yet
+        </Text>
       </View>
     );
   }

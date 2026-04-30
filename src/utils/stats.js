@@ -2,7 +2,7 @@
 // Pure data aggregation for the Stats screen.
 // No UI, no chart library — just functions that take logs and return chart-ready shapes.
 
-import { describeWorkoutScore } from "./score";
+import { computeDailyScore } from "./score";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -35,6 +35,26 @@ function avg(nums) {
   const valid = nums.filter((v) => typeof v === "number" && !Number.isNaN(v));
   if (!valid.length) return null;
   return valid.reduce((a, b) => a + b, 0) / valid.length;
+}
+
+/**
+ * Compute a 0-100 daily score from a log entry.
+ * Wraps computeDailyScore() to normalise whatever scale it returns into 0-100
+ * so the heatmap colour bands work consistently.
+ */
+function scoreForLog(log) {
+  if (!log || log.isRestDay) return null;
+  const raw = computeDailyScore({
+    isRestDay: log.isRestDay,
+    effort: log.effort,
+    mood: log.mood,
+    energy: log.energy,
+  });
+  if (typeof raw !== "number" || Number.isNaN(raw)) return null;
+
+  // computeDailyScore returns 1-5 (matching the Rating scale).
+  // Normalise to 0-100. If your score lib already returns 0-100, change to: return raw;
+  return Math.round((raw / 5) * 100);
 }
 
 // ── Public functions ──────────────────────────────────────────────────────
@@ -87,8 +107,15 @@ export function trendSeries(logs, key, days = 90) {
 }
 
 /**
- * Calendar heatmap cells — last N weeks of intensity (0-100 daily score).
+ * Calendar heatmap cells — last N weeks of daily intensity.
+ *
+ * Score resolution order:
+ *   1. Backend-supplied score for that date (scoresByDate[key])
+ *   2. Client-computed score from the log entry
+ *   3. null (cell renders as empty/grey)
+ *
  * Returns a flat array suitable for a grid layout: weeks × 7 days.
+ * All scores are normalised to a 0-100 scale.
  */
 export function heatmapCells(logs, scoresByDate, weeks = 26) {
   const today = startOfDay(new Date());
@@ -98,17 +125,33 @@ export function heatmapCells(logs, scoresByDate, weeks = 26) {
   // Snap to Monday-aligned start
   const aligned = startOfWeek(start);
 
+  // Index logs by date for O(1) lookup (otherwise this is O(n*days))
+  const logsByDate = {};
+  for (const l of logs || []) {
+    if (l && l.date) logsByDate[l.date] = l;
+  }
+
   const cells = [];
   const totalDays = Math.round((today - aligned) / MS_DAY) + 1;
+
   for (let i = 0; i < totalDays; i++) {
     const d = new Date(aligned);
     d.setDate(d.getDate() + i);
     const key = dateKey(d);
-    const score = scoresByDate?.[key];
-    const log = (logs || []).find((l) => l.date === key);
+    const log = logsByDate[key];
+
+    // Prefer backend score if available, otherwise compute from the log
+    let score = null;
+    const backendScore = scoresByDate?.[key];
+    if (typeof backendScore === "number") {
+      score = backendScore;
+    } else if (log) {
+      score = scoreForLog(log);
+    }
+
     cells.push({
       date: key,
-      score: typeof score === "number" ? score : null,
+      score,
       isRest: !!log?.isRestDay,
       hasLog: !!log,
       dow: (d.getDay() + 6) % 7, // Mon=0..Sun=6
