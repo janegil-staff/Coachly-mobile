@@ -1,179 +1,191 @@
 // src/screens/terms/TermsScreen.js
 //
-// Terms & Conditions screen — content is fully translated via the i18n system.
-// All section text comes from `t.terms*` keys in translations.js.
+// Coachly Terms & Conditions screen.
+// Reads structured content from t.termsSections (array of { title, body }).
+// Falls back to English keys if a language is missing entries.
 
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Linking,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "../../context/ThemeContext";
-import { useLang } from "../../context/LangContext";
-import { FontSize, Spacing, Radius } from "../../constants/theme";
+  Platform,
+  StatusBar,
+} from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
+import { useLang } from '../../context/LangContext';
 
-const SECTIONS = [
-  { titleKey: "termsSection1Title", bodyKey: "termsSection1Body" }, // Acceptance
-  { titleKey: "termsSection2Title", bodyKey: "termsSection2Body" }, // Account
-  { titleKey: "termsSection3Title", bodyKey: "termsSection3Body" }, // Acceptable use
-  { titleKey: "termsSection4Title", bodyKey: "termsSection4Body" }, // Health disclaimer
-  { titleKey: "termsSection5Title", bodyKey: "termsSection5Body" }, // Data & privacy
-  { titleKey: "termsSection6Title", bodyKey: "termsSection6Body" }, // IP
-  { titleKey: "termsSection7Title", bodyKey: "termsSection7Body" }, // Liability
-  { titleKey: "termsSection8Title", bodyKey: "termsSection8Body" }, // Changes
-  { titleKey: "termsSection9Title", bodyKey: "termsSection9Body" }, // Contact
-];
+const BLUE = '#4A7AB5';
 
-export default function TermsScreen() {
+export default function TermsScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useLang();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
-  const s = makeStyles(theme);
 
-  const contactEmail = "jan.egi.staff@qupda.com";
+  const sections = Array.isArray(t.termsSections) ? t.termsSections : [];
+
+  const styles = makeStyles(theme);
 
   return (
-    <View style={s.bg}>
-      <View style={[s.header, { paddingTop: insets.top + Spacing.sm }]}>
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle="light-content" backgroundColor={BLUE} />
+
+      {/* Header */}
+      <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          hitSlop={16}
-          style={s.headerBtn}
+          style={styles.backBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="chevron-back" size={26} color="#fff" />
+          <Text style={styles.backArrow}>‹</Text>
         </TouchableOpacity>
-        <Text style={s.headerTitle} numberOfLines={1}>
-          {t.termsTitle ?? "Terms & Conditions"}
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {t.termsTitle ?? 'Terms & Conditions'}
         </Text>
-        <View style={s.headerBtn} />
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
         contentContainerStyle={[
-          s.scroll,
-          { paddingBottom: insets.bottom + Spacing.xl },
+          styles.scroll,
+          { paddingBottom: insets.bottom + 32 },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={s.lastUpdated}>
-          {t.termsLastUpdated ?? "Last updated: April 2026"}
+        {/* Last updated */}
+        <Text style={styles.lastUpdated}>
+          {t.termsLastUpdated ?? 'Last updated: April 2026'}
         </Text>
 
-        <Text style={s.intro}>
-          {t.termsIntro ??
-            "These Terms & Conditions govern your use of Coachly, operated by Qup DA. By using the app, you agree to these terms."}
-        </Text>
+        {/* Intro */}
+        {t.termsIntro ? (
+          <Text style={styles.intro}>{t.termsIntro}</Text>
+        ) : null}
 
-        {SECTIONS.map((section, idx) => (
-          <View key={section.titleKey} style={s.section}>
-            <Text style={s.sectionTitle}>
-              {idx + 1}. {t[section.titleKey] ?? section.titleKey}
-            </Text>
-            <Text style={s.sectionBody}>
-              {t[section.bodyKey] ?? section.bodyKey}
-            </Text>
+        {/* Sections */}
+        {sections.map((s, i) => (
+          <View key={i} style={styles.section}>
+            <Text style={styles.sectionTitle}>{s.title}</Text>
+            <Text style={styles.sectionBody}>{s.body}</Text>
           </View>
         ))}
 
-        <View style={s.contactBox}>
-          <Text style={s.contactLabel}>{t.termsContact ?? "Contact"}</Text>
-          <TouchableOpacity
-            onPress={() => Linking.openURL(`mailto:${contactEmail}`)}
-            activeOpacity={0.7}
-          >
-            <Text style={s.contactEmail}>{contactEmail}</Text>
-          </TouchableOpacity>
-          <Text style={s.contactCompany}>
-            Qup DA · {t.operatesCoachly ?? "Operator of Coachly"}
+        {/* Contact footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerLabel}>
+            {t.termsContact ?? 'Contact'}
           </Text>
+          <Text style={styles.footerText}>Qup DA</Text>
+          <Text style={styles.footerText}>jan.egi.staff@qupda.com</Text>
         </View>
+
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.btnText}>{t.back ?? 'Back'}</Text>
+        </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 function makeStyles(theme) {
   return StyleSheet.create({
-    bg: { flex: 1, backgroundColor: theme.bg },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: Spacing.lg,
-      paddingBottom: Spacing.lg,
-      backgroundColor: theme.accent,
+    safe: {
+      flex: 1,
+      backgroundColor: theme?.bg ?? '#fff',
     },
-    headerBtn: { width: 40, alignItems: "center" },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: BLUE,
+      paddingHorizontal: 12,
+      paddingVertical: 14,
+    },
+    backBtn: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    backArrow: {
+      color: '#fff',
+      fontSize: 32,
+      fontWeight: '300',
+      marginTop: -4,
+    },
     headerTitle: {
       flex: 1,
-      color: "#fff",
-      fontSize: FontSize.lg,
-      fontWeight: "600",
-      textAlign: "center",
+      textAlign: 'center',
+      color: '#fff',
+      fontSize: 17,
+      fontWeight: '600',
     },
     scroll: {
-      paddingHorizontal: Spacing.lg,
-      paddingTop: Spacing.lg,
+      paddingHorizontal: 20,
+      paddingTop: 24,
     },
     lastUpdated: {
-      color: theme.textMuted,
-      fontSize: FontSize.sm,
-      fontStyle: "italic",
-      marginBottom: Spacing.md,
+      color: theme?.textSecondary ?? '#888',
+      fontSize: 13,
+      fontStyle: 'italic',
+      marginBottom: 16,
     },
     intro: {
-      color: theme.text,
-      fontSize: FontSize.md,
+      color: theme?.text ?? '#222',
+      fontSize: 15,
       lineHeight: 22,
-      marginBottom: Spacing.xl,
+      marginBottom: 24,
     },
     section: {
-      marginBottom: Spacing.lg,
+      marginBottom: 22,
     },
     sectionTitle: {
-      color: theme.accent,
-      fontSize: FontSize.md,
-      fontWeight: "700",
-      marginBottom: Spacing.sm,
+      color: BLUE,
+      fontSize: 16,
+      fontWeight: '700',
+      marginBottom: 8,
     },
     sectionBody: {
-      color: theme.text,
-      fontSize: FontSize.md,
+      color: theme?.textSecondary ?? '#444',
+      fontSize: 14,
       lineHeight: 22,
     },
-    contactBox: {
-      marginTop: Spacing.xl,
-      padding: Spacing.lg,
-      backgroundColor: theme.surface,
-      borderRadius: Radius.lg,
-      borderWidth: 1,
-      borderColor: theme.border,
+    footer: {
+      marginTop: 8,
+      marginBottom: 24,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: theme?.border ?? '#eee',
     },
-    contactLabel: {
-      color: theme.textMuted,
-      fontSize: FontSize.sm,
-      fontWeight: "700",
-      letterSpacing: 0.6,
-      textTransform: "uppercase",
-      marginBottom: Spacing.sm,
+    footerLabel: {
+      color: BLUE,
+      fontSize: 14,
+      fontWeight: '700',
+      marginBottom: 6,
     },
-    contactEmail: {
-      color: theme.accent,
-      fontSize: FontSize.md,
-      fontWeight: "600",
-      textDecorationLine: "underline",
+    footerText: {
+      color: theme?.textSecondary ?? '#444',
+      fontSize: 14,
+      lineHeight: 22,
     },
-    contactCompany: {
-      color: theme.textSecondary,
-      fontSize: FontSize.sm,
-      marginTop: Spacing.xs,
+    btn: {
+      backgroundColor: BLUE,
+      borderRadius: 12,
+      paddingVertical: 14,
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    btnText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '600',
     },
   });
 }

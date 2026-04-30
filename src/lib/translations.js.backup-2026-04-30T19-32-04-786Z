@@ -367,10 +367,7 @@ const strings = {
     "restq_item_35": "I trusted myself to stick to my plan",
     "restq_item_36": "I felt in control of my training",
     "comingSoon": "Coming soon",
-    "studiesComingSoon": "Studies feature is coming soon.",
-    "termsLastUpdated": "Last updated: April 2026",
-    "termsContact": "Contact",
-    "termsIntro": "These Terms & Conditions govern your use of Coachly, an application operated by Qup DA. By accessing or using the app, you agree to be bound by these terms. If you do not agree, please do not use the app.",
+    "studiesComingSoon": "Studies feature is coming soon."
   },
   "no": {
     "appName": "Coachly",
@@ -737,10 +734,7 @@ const strings = {
     "restq_item_35": "Jeg stolte på at jeg holdt meg til planen",
     "restq_item_36": "Jeg følte at jeg hadde kontroll på treningen",
     "comingSoon": "Kommer snart",
-    "studiesComingSoon": "Studier-funksjonen kommer snart.",
-    "termsLastUpdated": "Sist oppdatert: april 2026",
-    "termsContact": "Kontakt",
-    "termsIntro": "Disse vilkårene regulerer din bruk av Coachly, en applikasjon som drives av Qup DA. Ved å bruke appen godtar du å være bundet av disse vilkårene. Hvis du ikke godtar dem, må du ikke bruke appen.",
+    "studiesComingSoon": "Studier-funksjonen kommer snart."
   },
   "nl": {
     "appName": "Coachly",
@@ -1107,10 +1101,7 @@ const strings = {
     "restq_item_35": "Ik vertrouwde mezelf om me aan mijn plan te houden",
     "restq_item_36": "Ik had het gevoel dat ik mijn training onder controle had",
     "comingSoon": "Binnenkort",
-    "studiesComingSoon": "Studies-functie komt binnenkort.",
-    "termsLastUpdated": "Laatst bijgewerkt: april 2026",
-    "termsContact": "Contact",
-    "termsIntro": "Deze algemene voorwaarden zijn van toepassing op uw gebruik van Coachly, een applicatie die wordt beheerd door Qup DA. Door de app te gebruiken, gaat u akkoord met deze voorwaarden. Als u niet akkoord gaat, gebruik de app dan niet.",
+    "studiesComingSoon": "Studies-functie komt binnenkort."
   },
   "fr": {
     "appName": "Coachly",
@@ -1477,10 +1468,7 @@ const strings = {
     "restq_item_35": "J'avais confiance en moi pour tenir mon plan",
     "restq_item_36": "J'avais le contrôle de mon entraînement",
     "comingSoon": "Bientôt disponible",
-    "studiesComingSoon": "Fonctionnalité Études à venir.",
-    "termsLastUpdated": "Dernière mise à jour : avril 2026",
-    "termsContact": "Contact",
-    "termsIntro": "Les présentes conditions régissent votre utilisation de Coachly, une application exploitée par Qup DA. En accédant à l'application ou en l'utilisant, vous acceptez d'être lié par ces conditions. Si vous n'êtes pas d'accord, n'utilisez pas l'application.",
+    "studiesComingSoon": "Fonctionnalité Études à venir."
   },
   "de": {
     "appName": "Coachly",
@@ -1847,10 +1835,7 @@ const strings = {
     "restq_item_35": "Ich vertraute darauf, meinen Plan einzuhalten",
     "restq_item_36": "Ich hatte das Training unter Kontrolle",
     "comingSoon": "Bald verfügbar",
-    "studiesComingSoon": "Studien-Funktion kommt bald.",
-    "termsLastUpdated": "Zuletzt aktualisiert: April 2026",
-    "termsContact": "Kontakt",
-    "termsIntro": "Diese Allgemeinen Geschäftsbedingungen regeln Ihre Nutzung von Coachly, einer Anwendung, die von Qup DA betrieben wird. Durch die Nutzung der App erklären Sie sich mit diesen Bedingungen einverstanden. Wenn Sie nicht zustimmen, nutzen Sie die App bitte nicht.",
+    "studiesComingSoon": "Studien-Funktion kommt bald."
   },
   "it": {
     "appName": "Coachly",
@@ -2217,10 +2202,7 @@ const strings = {
     "restq_item_35": "Mi fidavo di seguire il mio piano",
     "restq_item_36": "Avevo il controllo del mio allenamento",
     "comingSoon": "Prossimamente",
-    "studiesComingSoon": "Funzione Studi in arrivo.",
-    "termsLastUpdated": "Ultimo aggiornamento: aprile 2026",
-    "termsContact": "Contatto",
-    "termsIntro": "I presenti termini e condizioni regolano l'utilizzo di Coachly, un'applicazione gestita da Qup DA. Accedendo o utilizzando l'app, accetti di essere vincolato da questi termini. Se non sei d'accordo, non utilizzare l'app.",
+    "studiesComingSoon": "Funzione Studi in arrivo."
   },
   "sv": {
     "appName": "Coachly",
@@ -2587,10 +2569,7 @@ const strings = {
     "restq_item_35": "Jag litade på att jag höll min plan",
     "restq_item_36": "Jag kände att jag hade kontroll på träningen",
     "comingSoon": "Kommer snart",
-    "studiesComingSoon": "Studier-funktionen kommer snart.",
-    "termsLastUpdated": "Senast uppdaterad: april 2026",
-    "termsContact": "Kontakt",
-    "termsIntro": "Dessa villkor reglerar din användning av Coachly, en applikation som drivs av Qup DA. Genom att använda appen godkänner du att du är bunden av dessa villkor. Om du inte godkänner dem, använd inte appen.",
+    "studiesComingSoon": "Studier-funktionen kommer snart."
   },
   "da": {
     "appName": "Coachly",
@@ -2957,10 +2936,7 @@ const strings = {
     "restq_item_35": "Jeg stolede på at jeg fulgte min plan",
     "restq_item_36": "Jeg havde kontrol over min træning",
     "comingSoon": "Kommer snart",
-    "studiesComingSoon": "Studier-funktionen kommer snart.",
-    "termsLastUpdated": "Sidst opdateret: april 2026",
-    "termsContact": "Kontakt",
-    "termsIntro": "Disse vilkår regulerer din brug af Coachly, en applikation der drives af Qup DA. Ved at bruge appen accepterer du at være bundet af disse vilkår. Hvis du ikke accepterer dem, må du ikke bruge appen.",
+    "studiesComingSoon": "Studier-funktionen kommer snart."
   },
   "fi": {
     "appName": "Coachly",
@@ -3327,10 +3303,7 @@ const strings = {
     "restq_item_35": "Luotin siihen että pysyn suunnitelmassani",
     "restq_item_36": "Tunsin hallitsevani harjoitteluani",
     "comingSoon": "Tulossa pian",
-    "studiesComingSoon": "Tutkimukset-ominaisuus tulossa pian.",
-    "termsLastUpdated": "Viimeksi päivitetty: huhtikuu 2026",
-    "termsContact": "Yhteystiedot",
-    "termsIntro": "Nämä käyttöehdot säätelevät Coachlyn käyttöäsi. Coachly on Qup DA:n ylläpitämä sovellus. Käyttämällä sovellusta hyväksyt nämä ehdot. Jos et hyväksy niitä, älä käytä sovellusta.",
+    "studiesComingSoon": "Tutkimukset-ominaisuus tulossa pian."
   },
   "es": {
     "appName": "Coachly",
@@ -3697,10 +3670,7 @@ const strings = {
     "restq_item_35": "Confié en que seguiría mi plan",
     "restq_item_36": "Sentí que tenía el control de mi entrenamiento",
     "comingSoon": "Próximamente",
-    "studiesComingSoon": "La función de Estudios llegará pronto.",
-    "termsLastUpdated": "Última actualización: abril de 2026",
-    "termsContact": "Contacto",
-    "termsIntro": "Estos términos y condiciones rigen el uso de Coachly, una aplicación operada por Qup DA. Al acceder o usar la aplicación, usted acepta estar sujeto a estos términos. Si no está de acuerdo, por favor no use la aplicación.",
+    "studiesComingSoon": "La función de Estudios llegará pronto."
   },
   "pl": {
     "appName": "Coachly",
@@ -4067,10 +4037,7 @@ const strings = {
     "restq_item_35": "Ufałem/am że trzymam się planu",
     "restq_item_36": "Czułem/am że mam kontrolę nad treningiem",
     "comingSoon": "Wkrótce",
-    "studiesComingSoon": "Funkcja Badań już wkrótce.",
-    "termsLastUpdated": "Ostatnia aktualizacja: kwiecień 2026",
-    "termsContact": "Kontakt",
-    "termsIntro": "Niniejszy regulamin reguluje korzystanie z Coachly, aplikacji obsługiwanej przez Qup DA. Korzystając z aplikacji, zgadzasz się przestrzegać tych warunków. Jeśli się nie zgadzasz, nie korzystaj z aplikacji.",
+    "studiesComingSoon": "Funkcja Badań już wkrótce."
   },
   "pt": {
     "appName": "Coachly",
@@ -4437,10 +4404,7 @@ const strings = {
     "restq_item_35": "Confiei em mim para seguir o plano",
     "restq_item_36": "Senti que tinha controlo sobre o meu treino",
     "comingSoon": "Em breve",
-    "studiesComingSoon": "Funcionalidade Estudos em breve.",
-    "termsLastUpdated": "Última atualização: abril de 2026",
-    "termsContact": "Contacto",
-    "termsIntro": "Estes termos e condições regem a sua utilização do Coachly, uma aplicação operada pela Qup DA. Ao aceder ou utilizar a aplicação, concorda em ficar vinculado a estes termos. Se não concordar, por favor não utilize a aplicação.",
+    "studiesComingSoon": "Funcionalidade Estudos em breve."
   }
 };
 

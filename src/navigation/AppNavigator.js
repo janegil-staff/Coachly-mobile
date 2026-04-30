@@ -71,6 +71,7 @@ function AppStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Terms" component={TermsScreen} />
       <Stack.Screen name="Log" component={LogEntryScreen} />
       <Stack.Screen name="History" component={LogHistoryScreen} />
       <Stack.Screen name="MyData" component={MyDataScreen} />

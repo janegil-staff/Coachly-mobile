@@ -27,9 +27,25 @@ function FemaleSvg({ color, size = 48 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 48 48" fill="none">
       <Circle cx="24" cy="14" r="8" stroke={color} strokeWidth="2" />
-      <Path d="M16 14 Q16 6 24 6 Q32 6 32 14" stroke={color} strokeWidth="2" fill="none" />
-      <Path d="M10 38 C10 28 38 28 38 38" stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" />
-      <Path d="M17 26 L14 38 M31 26 L34 38" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      <Path
+        d="M16 14 Q16 6 24 6 Q32 6 32 14"
+        stroke={color}
+        strokeWidth="2"
+        fill="none"
+      />
+      <Path
+        d="M10 38 C10 28 38 28 38 38"
+        stroke={color}
+        strokeWidth="2"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M17 26 L14 38 M31 26 L34 38"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -37,15 +53,34 @@ function MaleSvg({ color, size = 48 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 48 48" fill="none">
       <Circle cx="24" cy="14" r="8" stroke={color} strokeWidth="2" />
-      <Path d="M10 38 C10 28 38 28 38 38" stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" />
-      <Path d="M20 26 L24 30 L28 26" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <Path
+        d="M10 38 C10 28 38 28 38 38"
+        stroke={color}
+        strokeWidth="2"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M20 26 L24 30 L28 26"
+        stroke={color}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
     </Svg>
   );
 }
 function UndefinedSvg({ color, size = 48 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <Path d="M20 18 C20 14 28 14 28 19 C28 22 24 23 24 26" stroke={color} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      <Path
+        d="M20 18 C20 14 28 14 28 19 C28 22 24 23 24 26"
+        stroke={color}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        fill="none"
+      />
       <Circle cx="24" cy="31" r="1.5" fill={color} />
     </Svg>
   );
@@ -53,9 +88,29 @@ function UndefinedSvg({ color, size = 48 }) {
 function LogoutIcon({ color = "#fff", size = 22 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M16 17l5-5-5-5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <Line x1="21" y1="12" x2="9" y2="12" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <Path
+        d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M16 17l5-5-5-5"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Line
+        x1="21"
+        y1="12"
+        x2="9"
+        y2="12"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -111,9 +166,15 @@ export default function ProfileScreen({ navigation, route }) {
 
   const profile = user?.clientProfile ?? {};
   const [gender, setGender] = useState(profile.gender ?? "undefined");
-  const [ageVal, setAgeVal] = useState(profile.age != null ? String(profile.age) : "");
-  const [heightVal, setHeightVal] = useState(profile.heightCm != null ? String(profile.heightCm) : "");
-  const [weightVal, setWeightVal] = useState(profile.weightKg != null ? String(profile.weightKg) : "");
+  const [ageVal, setAgeVal] = useState(
+    profile.age != null ? String(profile.age) : "",
+  );
+  const [heightVal, setHeightVal] = useState(
+    profile.heightCm != null ? String(profile.heightCm) : "",
+  );
+  const [weightVal, setWeightVal] = useState(
+    profile.weightKg != null ? String(profile.weightKg) : "",
+  );
   const [saving, setSaving] = useState(false);
 
   // Sync state when user.clientProfile changes (e.g. after save)
@@ -137,7 +198,10 @@ export default function ProfileScreen({ navigation, route }) {
     if (!newPin || !oldPin) return;
     (async () => {
       try {
-        await authApi.changePassword({ oldPassword: oldPin, newPassword: newPin });
+        await authApi.changePassword({
+          oldPassword: oldPin,
+          newPassword: newPin,
+        });
         await savePin(newPin);
         Alert.alert(t.saved ?? "Saved", t.pinUpdated ?? "PIN updated.");
       } catch (e) {
@@ -200,7 +264,7 @@ export default function ProfileScreen({ navigation, route }) {
               navigation.goBack();
             },
           },
-        ]
+        ],
       );
     } else {
       navigation.goBack();
@@ -235,7 +299,7 @@ export default function ProfileScreen({ navigation, route }) {
         <TouchableOpacity onPress={handleBack} style={s.headerBtn}>
           <Text style={s.headerBack}>‹</Text>
         </TouchableOpacity>
-        <Text style={s.headerTitle}>{t.settings ?? "Settings"}</Text>
+        <Text style={s.headerTitle}>{t.settingsTitle ?? "Settings"}</Text>
         <TouchableOpacity style={s.headerBtnRight} onPress={handleLogout}>
           <LogoutIcon color="#fff" size={22} />
         </TouchableOpacity>
@@ -248,7 +312,9 @@ export default function ProfileScreen({ navigation, route }) {
       >
         {/* Gender */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>{t.chooseGender ?? "Choose gender"}</Text>
+          <Text style={s.sectionTitle}>
+            {t.chooseGender ?? "Choose gender"}
+          </Text>
           <View style={s.genderRow}>
             {GENDERS.map(({ value, labelKey, Svg: GenderSvg }) => {
               const active = gender === value;
@@ -321,7 +387,9 @@ export default function ProfileScreen({ navigation, route }) {
               style={s.fieldInput}
               value={weightVal}
               onChangeText={(v) =>
-                setWeightVal(v.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1"))
+                setWeightVal(
+                  v.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1"),
+                )
               }
               keyboardType="decimal-pad"
               placeholder="—"
@@ -349,7 +417,12 @@ export default function ProfileScreen({ navigation, route }) {
 
         {/* Save button only when dirty */}
         {isDirty && (
-          <View style={{ paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md }}>
+          <View
+            style={{
+              paddingHorizontal: Spacing.lg,
+              paddingVertical: Spacing.md,
+            }}
+          >
             <TouchableOpacity
               onPress={saveChanges}
               disabled={saving}
@@ -380,7 +453,7 @@ export default function ProfileScreen({ navigation, route }) {
             theme={theme}
           />
           <Row
-            label={t.termsConditions ?? "Terms & Conditions"}
+            label={t.termsTitle ?? "Terms & Conditions"}
             value={t.view ?? "View"}
             onPress={() => navigation.navigate("Terms")}
             theme={theme}
