@@ -479,7 +479,18 @@ const strings = {
     "unsavedChanges": "You have unsaved changes.",
     "discard": "Discard",
     "profileUpdated": "Profile updated.",
-    "pinUpdated": "PIN updated."
+    "pinUpdated": "PIN updated.",
+    "totalHours": "Hours",
+    "restDays": "Rest days",
+    "balance": "Balance",
+    "last14days": "Average across the last 14 days",
+    "trends": "Trends",
+    "last90days": "Effort, mood, energy, sleep over time",
+    "heatmap": "Heatmap",
+    "last26weeks": "Daily intensity, last 6 months",
+    "weeklyVolume": "Weekly volume",
+    "last12weeks": "Total minutes per week",
+    "categoryMix": "Category mix"
   },
   "no": {
     "appName": "Coachly",
@@ -959,7 +970,18 @@ const strings = {
     "unsavedChanges": "Du har ulagrede endringer.",
     "discard": "Forkast",
     "profileUpdated": "Profil oppdatert.",
-    "pinUpdated": "PIN oppdatert."
+    "pinUpdated": "PIN oppdatert.",
+    "totalHours": "Timer",
+    "restDays": "Hviledager",
+    "balance": "Balanse",
+    "last14days": "Gjennomsnitt for de siste 14 dagene",
+    "trends": "Trender",
+    "last90days": "Innsats, humør, energi og søvn over tid",
+    "heatmap": "Varmekart",
+    "last26weeks": "Daglig intensitet, siste 6 måneder",
+    "weeklyVolume": "Ukentlig volum",
+    "last12weeks": "Totalt antall minutter per uke",
+    "categoryMix": "Kategorifordeling"
   },
   "nl": {
     "appName": "Coachly",
@@ -1439,7 +1461,18 @@ const strings = {
     "unsavedChanges": "Je hebt niet-opgeslagen wijzigingen.",
     "discard": "Verwerpen",
     "profileUpdated": "Profiel bijgewerkt.",
-    "pinUpdated": "Pincode bijgewerkt."
+    "pinUpdated": "Pincode bijgewerkt.",
+    "totalHours": "Uren",
+    "restDays": "Rustdagen",
+    "balance": "Balans",
+    "last14days": "Gemiddelde over de laatste 14 dagen",
+    "trends": "Trends",
+    "last90days": "Inspanning, stemming, energie, slaap over tijd",
+    "heatmap": "Heatmap",
+    "last26weeks": "Dagelijkse intensiteit, laatste 6 maanden",
+    "weeklyVolume": "Wekelijks volume",
+    "last12weeks": "Totaal minuten per week",
+    "categoryMix": "Categoriemix"
   },
   "fr": {
     "appName": "Coachly",
@@ -1919,7 +1952,18 @@ const strings = {
     "unsavedChanges": "Vous avez des modifications non enregistrées.",
     "discard": "Abandonner",
     "profileUpdated": "Profil mis à jour.",
-    "pinUpdated": "Code PIN mis à jour."
+    "pinUpdated": "Code PIN mis à jour.",
+    "totalHours": "Heures",
+    "restDays": "Jours de repos",
+    "balance": "Équilibre",
+    "last14days": "Moyenne sur les 14 derniers jours",
+    "trends": "Tendances",
+    "last90days": "Effort, humeur, énergie, sommeil au fil du temps",
+    "heatmap": "Carte thermique",
+    "last26weeks": "Intensité quotidienne, 6 derniers mois",
+    "weeklyVolume": "Volume hebdomadaire",
+    "last12weeks": "Minutes totales par semaine",
+    "categoryMix": "Répartition par catégorie"
   },
   "de": {
     "appName": "Coachly",
@@ -2399,7 +2443,18 @@ const strings = {
     "unsavedChanges": "Du hast nicht gespeicherte Änderungen.",
     "discard": "Verwerfen",
     "profileUpdated": "Profil aktualisiert.",
-    "pinUpdated": "PIN aktualisiert."
+    "pinUpdated": "PIN aktualisiert.",
+    "totalHours": "Stunden",
+    "restDays": "Ruhetage",
+    "balance": "Balance",
+    "last14days": "Durchschnitt der letzten 14 Tage",
+    "trends": "Trends",
+    "last90days": "Anstrengung, Stimmung, Energie, Schlaf im Zeitverlauf",
+    "heatmap": "Heatmap",
+    "last26weeks": "Tägliche Intensität, letzte 6 Monate",
+    "weeklyVolume": "Wöchentliches Volumen",
+    "last12weeks": "Gesamtminuten pro Woche",
+    "categoryMix": "Kategorienverteilung"
   },
   "it": {
     "appName": "Coachly",
@@ -2879,7 +2934,18 @@ const strings = {
     "unsavedChanges": "Hai modifiche non salvate.",
     "discard": "Scarta",
     "profileUpdated": "Profilo aggiornato.",
-    "pinUpdated": "PIN aggiornato."
+    "pinUpdated": "PIN aggiornato.",
+    "totalHours": "Ore",
+    "restDays": "Giorni di riposo",
+    "balance": "Equilibrio",
+    "last14days": "Media degli ultimi 14 giorni",
+    "trends": "Tendenze",
+    "last90days": "Sforzo, umore, energia, sonno nel tempo",
+    "heatmap": "Mappa di calore",
+    "last26weeks": "Intensità giornaliera, ultimi 6 mesi",
+    "weeklyVolume": "Volume settimanale",
+    "last12weeks": "Minuti totali a settimana",
+    "categoryMix": "Mix per categoria"
   },
   "sv": {
     "appName": "Coachly",
@@ -3359,7 +3425,18 @@ const strings = {
     "unsavedChanges": "Du har osparade ändringar.",
     "discard": "Förkasta",
     "profileUpdated": "Profil uppdaterad.",
-    "pinUpdated": "PIN uppdaterad."
+    "pinUpdated": "PIN uppdaterad.",
+    "totalHours": "Timmar",
+    "restDays": "Vilodagar",
+    "balance": "Balans",
+    "last14days": "Genomsnitt över de senaste 14 dagarna",
+    "trends": "Trender",
+    "last90days": "Ansträngning, humör, energi, sömn över tid",
+    "heatmap": "Värmekarta",
+    "last26weeks": "Daglig intensitet, senaste 6 månaderna",
+    "weeklyVolume": "Veckovolym",
+    "last12weeks": "Totala minuter per vecka",
+    "categoryMix": "Kategorimix"
   },
   "da": {
     "appName": "Coachly",
@@ -3839,7 +3916,18 @@ const strings = {
     "unsavedChanges": "Du har ugemte ændringer.",
     "discard": "Kassér",
     "profileUpdated": "Profil opdateret.",
-    "pinUpdated": "PIN opdateret."
+    "pinUpdated": "PIN opdateret.",
+    "totalHours": "Timer",
+    "restDays": "Hviledage",
+    "balance": "Balance",
+    "last14days": "Gennemsnit for de sidste 14 dage",
+    "trends": "Tendenser",
+    "last90days": "Indsats, humør, energi, søvn over tid",
+    "heatmap": "Varmekort",
+    "last26weeks": "Daglig intensitet, sidste 6 måneder",
+    "weeklyVolume": "Ugentlig volumen",
+    "last12weeks": "Samlede minutter per uge",
+    "categoryMix": "Kategorifordeling"
   },
   "fi": {
     "appName": "Coachly",
@@ -4319,7 +4407,18 @@ const strings = {
     "unsavedChanges": "Sinulla on tallentamattomia muutoksia.",
     "discard": "Hylkää",
     "profileUpdated": "Profiili päivitetty.",
-    "pinUpdated": "PIN päivitetty."
+    "pinUpdated": "PIN päivitetty.",
+    "totalHours": "Tunnit",
+    "restDays": "Lepopäivät",
+    "balance": "Tasapaino",
+    "last14days": "Viimeisen 14 päivän keskiarvo",
+    "trends": "Trendit",
+    "last90days": "Rasitus, mieliala, energia, uni ajan myötä",
+    "heatmap": "Lämpökartta",
+    "last26weeks": "Päivittäinen rasitus, viimeiset 6 kuukautta",
+    "weeklyVolume": "Viikoittainen määrä",
+    "last12weeks": "Minuutit yhteensä viikossa",
+    "categoryMix": "Kategoriajakauma"
   },
   "es": {
     "appName": "Coachly",
@@ -4799,7 +4898,18 @@ const strings = {
     "unsavedChanges": "Tienes cambios sin guardar.",
     "discard": "Descartar",
     "profileUpdated": "Perfil actualizado.",
-    "pinUpdated": "PIN actualizado."
+    "pinUpdated": "PIN actualizado.",
+    "totalHours": "Horas",
+    "restDays": "Días de descanso",
+    "balance": "Equilibrio",
+    "last14days": "Promedio de los últimos 14 días",
+    "trends": "Tendencias",
+    "last90days": "Esfuerzo, ánimo, energía, sueño con el tiempo",
+    "heatmap": "Mapa de calor",
+    "last26weeks": "Intensidad diaria, últimos 6 meses",
+    "weeklyVolume": "Volumen semanal",
+    "last12weeks": "Minutos totales por semana",
+    "categoryMix": "Mezcla por categoría"
   },
   "pl": {
     "appName": "Coachly",
@@ -5279,7 +5389,18 @@ const strings = {
     "unsavedChanges": "Masz niezapisane zmiany.",
     "discard": "Odrzuć",
     "profileUpdated": "Profil zaktualizowany.",
-    "pinUpdated": "PIN zaktualizowany."
+    "pinUpdated": "PIN zaktualizowany.",
+    "totalHours": "Godziny",
+    "restDays": "Dni odpoczynku",
+    "balance": "Równowaga",
+    "last14days": "Średnia z ostatnich 14 dni",
+    "trends": "Trendy",
+    "last90days": "Wysiłek, nastrój, energia, sen w czasie",
+    "heatmap": "Mapa cieplna",
+    "last26weeks": "Dzienna intensywność, ostatnie 6 miesięcy",
+    "weeklyVolume": "Tygodniowy wolumen",
+    "last12weeks": "Łączne minuty na tydzień",
+    "categoryMix": "Podział na kategorie"
   },
   "pt": {
     "appName": "Coachly",
@@ -5759,7 +5880,18 @@ const strings = {
     "unsavedChanges": "Tens alterações não guardadas.",
     "discard": "Descartar",
     "profileUpdated": "Perfil atualizado.",
-    "pinUpdated": "PIN atualizado."
+    "pinUpdated": "PIN atualizado.",
+    "totalHours": "Horas",
+    "restDays": "Dias de descanso",
+    "balance": "Equilíbrio",
+    "last14days": "Média dos últimos 14 dias",
+    "trends": "Tendências",
+    "last90days": "Esforço, humor, energia, sono ao longo do tempo",
+    "heatmap": "Mapa de calor",
+    "last26weeks": "Intensidade diária, últimos 6 meses",
+    "weeklyVolume": "Volume semanal",
+    "last12weeks": "Minutos totais por semana",
+    "categoryMix": "Distribuição por categoria"
   }
 };
 
