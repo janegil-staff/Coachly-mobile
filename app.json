@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "coachly-mobile",
-    "slug": "coachly-mobile",
+    "name": "Coachly",
+    "slug": "coachly",
     "extra": {
       "apiUrl": "http://192.168.1.42:5050"
     },

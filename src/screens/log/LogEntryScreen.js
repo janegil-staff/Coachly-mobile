@@ -200,11 +200,18 @@ export default function LogEntryScreen({ navigation, route }) {
     if (existingLog.sleepQuality != null) setSleep(existingLog.sleepQuality);
     if (existingLog.soreness != null) setSoreness(existingLog.soreness);
     if (existingLog.note != null) setNotes(existingLog.note);
-    if (existingLog.weightKg != null)
-      setWeightKg(String(existingLog.weightKg));
+    if (existingLog.weightKg != null) setWeightKg(String(existingLog.weightKg));
 
     setPrefilled(true);
   }, [existingLog, prefilled]);
+
+  // If user is a rest day but we're on a training-only step (3 or 4),
+  // jump to step 5 (weight) since the training steps don't apply.
+  useEffect(() => {
+    if (isRestDay && (step === 3 || step === 4)) {
+      setStep(5);
+    }
+  }, [isRestDay, step]);
 
   useEffect(() => {
     const profileWeight = user?.clientProfile?.weightKg;
@@ -290,6 +297,9 @@ export default function LogEntryScreen({ navigation, route }) {
   }, [myExercises, categoryDurations]);
 
   const canGoNext = () => {
+    // Wait for prefill before allowing progression
+    if (existingLog && !prefilled) return false;
+
     if (step === 3) {
       return (
         categoryDurations.length > 0 &&
@@ -300,6 +310,10 @@ export default function LogEntryScreen({ navigation, route }) {
   };
 
   const goNext = () => {
+    // Block navigation until prefill is complete (prevents race condition
+    // where user advances past step 2 before isRestDay finishes loading)
+    if (existingLog && !prefilled) return;
+
     if (step === 2 && isRestDay) {
       setStep(5);
     } else if (step < 6) {
