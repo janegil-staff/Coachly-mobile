@@ -1,5 +1,5 @@
 // src/screens/questionnaires/QuestionnaireHubScreen.js
-// Landing for the Questionnaire tab: shows Hooper (daily) and RESTQ (periodic).
+// Landing for the Questionnaire tab.
 
 import React, { useState, useCallback } from "react";
 import {
@@ -30,6 +30,24 @@ function formatDate(dateStr) {
   });
 }
 
+/**
+ * Pull a displayable score (e.g. "3.4 / 5") from a saved questionnaire doc.
+ * Different questionnaire types store scores differently:
+ *   - Hooper: { total: 12, status: "normal" }
+ *   - Restq:  { stress, recovery, balance }
+ *   - Goals & co.: { avg: 3.4, status: "ontrack" }
+ */
+function formatScore(doc) {
+  if (!doc?.scores) return null;
+  const sc = doc.scores;
+  if (typeof sc.avg === "number") return `${sc.avg} / 5`;
+  if (typeof sc.total === "number") return `${sc.total} / 28`;
+  if (typeof sc.balance === "number") {
+    return `${sc.balance >= 0 ? "+" : ""}${sc.balance}`;
+  }
+  return null;
+}
+
 export default function QuestionnaireHubScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useLang();
@@ -39,16 +57,19 @@ export default function QuestionnaireHubScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [latestHooper, setLatestHooper] = useState(null);
   const [latestRestq, setLatestRestq] = useState(null);
+  const [latestGoals, setLatestGoals] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [h, r] = await Promise.all([
+      const [h, r, g] = await Promise.all([
         questionnairesApi.latest("hooper").catch(() => null),
         questionnairesApi.latest("restq").catch(() => null),
+        questionnairesApi.latest("goals").catch(() => null),
       ]);
       setLatestHooper(h);
       setLatestRestq(r);
+      setLatestGoals(g);
     } finally {
       setLoading(false);
     }
@@ -67,35 +88,45 @@ export default function QuestionnaireHubScreen({ navigation }) {
     subtitleKey,
     descKey,
     startKey,
-    lastDate,
+    lastDoc,
     onPress,
     icon,
-  }) => (
-    <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>
-      <View style={s.cardHeader}>
-        <View style={[s.iconCircle, { backgroundColor: PRIMARY + "22" }]}>
-          <Ionicons name={icon} size={26} color={PRIMARY} />
+  }) => {
+    const lastDate = lastDoc?.date;
+    const scoreLabel = formatScore(lastDoc);
+    const completedLabel =
+      lastDate
+        ? (t.hooperLastDone ?? "Last completed") + ": " + formatDate(lastDate)
+        : (t.hooperNever ?? "Not completed yet");
+
+    return (
+      <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>
+        <View style={s.cardHeader}>
+          <View style={[s.iconCircle, { backgroundColor: PRIMARY + "22" }]}>
+            <Ionicons name={icon} size={26} color={PRIMARY} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.cardTitle}>{t[titleKey]}</Text>
+            <Text style={s.cardSubtitle}>{t[subtitleKey]}</Text>
+          </View>
+          {scoreLabel ? (
+            <View style={[s.scoreBadge, { borderColor: PRIMARY }]}>
+              <Text style={[s.scoreBadgeText, { color: PRIMARY }]}>
+                {scoreLabel}
+              </Text>
+            </View>
+          ) : null}
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={s.cardTitle}>{t[titleKey]}</Text>
-          <Text style={s.cardSubtitle}>{t[subtitleKey]}</Text>
+        <Text style={s.cardDesc}>{t[descKey]}</Text>
+        <View style={s.cardFooter}>
+          <Text style={s.cardMeta}>{completedLabel}</Text>
+          <View style={[s.startBtn, { backgroundColor: PRIMARY }]}>
+            <Text style={s.startBtnText}>{t[startKey]}</Text>
+          </View>
         </View>
-      </View>
-      <Text style={s.cardDesc}>{t[descKey]}</Text>
-      <View style={s.cardFooter}>
-        <Text style={s.cardMeta}>
-          {lastDate
-            ? (t.hooperLastDone ?? "Last completed") +
-              ": " +
-              formatDate(lastDate)
-            : (t.hooperNever ?? "Not completed yet")}
-        </Text>
-        <View style={[s.startBtn, { backgroundColor: PRIMARY }]}>
-          <Text style={s.startBtnText}>{t[startKey]}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={[s.root, { backgroundColor: theme.bgSecondary ?? "#F0F4F8" }]}>
@@ -128,36 +159,35 @@ export default function QuestionnaireHubScreen({ navigation }) {
         <ScrollView
           contentContainerStyle={{ padding: Spacing.lg, paddingBottom: 40 }}
         >
-          { /*
+          {/* Hooper and RESTQ commented out — re-enable by uncommenting:
           <Card
             titleKey="hooperTitle"
             subtitleKey="hooperSubtitle"
             descKey="hooperDesc"
             startKey="hooperStart"
-            lastDate={latestHooper?.date}
+            lastDoc={latestHooper}
             onPress={() => navigation.navigate("Hooper")}
             icon="pulse"
           />
-         
           <Card
             titleKey="restqTitle"
             subtitleKey="restqSubtitle"
             descKey="restqDesc"
             startKey="restqStart"
-            lastDate={latestRestq?.date}
+            lastDoc={latestRestq}
             onPress={() => navigation.navigate("Restq")}
             icon="clipboard-outline"
           />
-           */ }
+          */}
           <Card
             titleKey="goalsTitle"
             subtitleKey="goalsSubtitle"
             descKey="goalsDesc"
             startKey="goalsStart"
-            lastDate={null}
+            lastDoc={latestGoals}
             onPress={() => navigation.navigate("Goals")}
             icon="flag-outline"
-          /> 
+          />
         </ScrollView>
       )}
 
@@ -235,6 +265,17 @@ function makeStyles(theme) {
       fontSize: FontSize.xs,
       fontWeight: "800",
       letterSpacing: 1,
+    },
+    scoreBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+      borderWidth: 1.5,
+    },
+    scoreBadgeText: {
+      fontSize: FontSize.xs,
+      fontWeight: "800",
+      letterSpacing: 0.5,
     },
   });
 }

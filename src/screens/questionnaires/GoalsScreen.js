@@ -2,7 +2,7 @@
 // Monthly Goal Check-in: 5 items, 1-5 agreement scale.
 // Self-contained — follows the same pattern as HooperScreen.
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -106,21 +106,32 @@ export default function GoalsScreen({ navigation }) {
 
   const allAnswered = answers.every((a) => typeof a === "number");
 
+  useEffect(() => {
+    questionnairesApi
+      .latest("goals")
+      .then((doc) => {
+        console.log("[Goals] latest doc on mount:", JSON.stringify(doc));
+        if (doc?.answers && Array.isArray(doc.answers)) {
+          setAnswers(doc.answers);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const submit = async () => {
     if (!allAnswered || saving) return;
     setSaving(true);
     try {
       const score = computeScore(answers);
-      // Try to persist via existing API helper. If the backend doesn't
-      // know about "goals" yet, this will throw and we'll just show
-      // the result locally.
+      console.log("[Goals] computed locally:", JSON.stringify(score));
       let saved = null;
       try {
         saved = await questionnairesApi.submit({
           type: "goals",
           answers,
-          score,
+          scores: score,
         });
+        console.log("[Goals] backend returned:", JSON.stringify(saved));
       } catch (e) {
         console.warn(
           "[Goals] save failed (showing result locally):",
@@ -142,6 +153,7 @@ export default function GoalsScreen({ navigation }) {
     const avg = score.avg ?? "—";
     const status = score.status ?? "ontrack";
     const statusKey = "goalsStatus_" + status;
+
     return (
       <View
         style={[s.root, { backgroundColor: theme.bgSecondary ?? "#F0F4F8" }]}
@@ -326,8 +338,8 @@ function makeStyles(theme) {
       justifyContent: "center",
       alignItems: "center",
       marginTop: Spacing.md,
-      alignSelf: "stretch", // ← ADD THIS
-      paddingHorizontal: 24, // ← ADD THIS
+      alignSelf: "stretch",
+      paddingHorizontal: 24,
     },
     saveBtnText: {
       color: "#fff",

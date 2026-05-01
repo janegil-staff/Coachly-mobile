@@ -269,11 +269,12 @@ export const shareApi = {
 };
 
 export const questionnairesApi = {
-  submit: async ({ type, answers, date }) => {
+  submit: async ({ type, answers, date, scores }) => {
     return await request("POST", "/api/questionnaires", {
       type,
       answers,
       date,
+      scores,
     });
   },
   list: async ({ type, limit } = {}) => {
