@@ -3,7 +3,7 @@
 // Items 4, 5, 7, 8 are reverse-scored.
 // Total 0-40. Cutoffs: 0-13 low, 14-26 moderate, 27-40 high.
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -85,6 +85,31 @@ export default function StressScreen({ navigation }) {
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState(null);
 
+  const [loading, setLoading] = useState(true);
+
+  // [prefill] mounted-fetch added
+  // Fetch the latest submission once on mount and prefill the answers.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const list = await questionnairesApi.list({ type: "pss10", limit: 1 });
+        if (!alive) return;
+        const last = Array.isArray(list) ? list[0] : null;
+        if (last && last.answers && typeof last.answers === "object") {
+          setAnswers(last.answers);
+        }
+      } catch (e) {
+        console.warn("[pss10] prefill fetch failed:", e?.message ?? e);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const s = makeStyles(theme);
 
   const setAnswer = (q, value) =>
@@ -102,6 +127,10 @@ export default function StressScreen({ navigation }) {
     setSaving(true);
     try {
       const score = computeScore(answers);
+      console.log(
+        "[PSS-10] submitting:",
+        JSON.stringify({ type: "pss10", answers, scores: score }),
+      ); // ← ADD
       let saved = null;
       try {
         saved = await questionnairesApi.submit({
@@ -109,6 +138,7 @@ export default function StressScreen({ navigation }) {
           answers,
           scores: score,
         });
+        console.log("[PSS-10] backend returned:", JSON.stringify(saved)); // ← ADD
       } catch (e) {
         console.warn("[PSS-10] save failed:", e?.message ?? e);
       }
@@ -346,6 +376,7 @@ function makeStyles(theme) {
       fontWeight: "600",
     },
     primaryBtn: {
+      width: "100%",  
       height: 50,
       borderRadius: Radius.md ?? 12,
       justifyContent: "center",
@@ -370,7 +401,7 @@ function makeStyles(theme) {
     resultContainer: {
       padding: Spacing.lg,
       paddingTop: Spacing.xl,
-      alignItems: "stretch",
+      alignItems: "center", // ← change to "stretch"
     },
     resultBadge: {
       width: 120,

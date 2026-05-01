@@ -3,7 +3,7 @@
 // 9 questions, several sub-parts. Computes 7 component scores → global 0-21.
 // Score >5 = poor sleep.
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -44,20 +44,20 @@ function parseTime(t) {
 
 function bandLatency(minutes, q5a) {
   let mScore;
-  if (minutes <= 15) mScore = 0;
+  if (minutes <= 15)      mScore = 0;
   else if (minutes <= 30) mScore = 1;
   else if (minutes <= 60) mScore = 2;
-  else mScore = 3;
+  else                    mScore = 3;
   const sum = mScore + Number(q5a || 0);
   if (sum === 0) return 0;
-  if (sum <= 2) return 1;
-  if (sum <= 4) return 2;
+  if (sum <= 2)  return 1;
+  if (sum <= 4)  return 2;
   return 3;
 }
 
 function bandDuration(hours) {
-  if (hours > 7) return 0;
-  if (hours > 6) return 1;
+  if (hours > 7)  return 0;
+  if (hours > 6)  return 1;
   if (hours >= 5) return 2;
   return 3;
 }
@@ -73,17 +73,17 @@ function bandEfficiency(hoursAsleep, hoursInBed) {
 
 function bandDisturbances(items) {
   const sum = items.reduce((a, b) => a + Number(b || 0), 0);
-  if (sum === 0) return 0;
-  if (sum <= 9) return 1;
-  if (sum <= 18) return 2;
+  if (sum === 0)  return 0;
+  if (sum <= 9)   return 1;
+  if (sum <= 18)  return 2;
   return 3;
 }
 
 function bandDaytimeDysfunction(q8, q9) {
   const sum = Number(q8 || 0) + Number(q9 || 0);
   if (sum === 0) return 0;
-  if (sum <= 2) return 1;
-  if (sum <= 4) return 2;
+  if (sum <= 2)  return 1;
+  if (sum <= 4)  return 2;
   return 3;
 }
 
@@ -106,7 +106,7 @@ function computeScore(answers) {
   const c4 = bandEfficiency(Number(answers.q4 || 0), timeInBedHrs);
 
   const c5 = bandDisturbances(
-    Q5_SUBITEMS.slice(1).map((s) => answers[`q5${s}`]),
+    Q5_SUBITEMS.slice(1).map((s) => answers[`q5${s}`])
   );
 
   const c6 = Number(answers.q7 || 0);
@@ -114,12 +114,7 @@ function computeScore(answers) {
 
   const total = c1 + c2 + c3 + c4 + c5 + c6 + c7;
   const key = total > 5 ? "psqi_resultPoor" : "psqi_resultGood";
-  return {
-    score: total,
-    max: 21,
-    key,
-    components: { c1, c2, c3, c4, c5, c6, c7 },
-  };
+  return { score: total, max: 21, key, components: { c1, c2, c3, c4, c5, c6, c7 } };
 }
 
 // Did the user fill everything we need?
@@ -163,38 +158,11 @@ export default function SleepScreen({ navigation }) {
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState(null);
 
-  const [loading, setLoading] = useState(true);
-
-  // [prefill] mounted-fetch added
-  // Fetch the latest submission once on mount and prefill the answers.
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const list = await questionnairesApi.list({ type: "psqi", limit: 1 });
-        if (!alive) return;
-        const last = Array.isArray(list) ? list[0] : null;
-        if (last && last.answers && typeof last.answers === "object") {
-          setAnswers(last.answers);
-        }
-      } catch (e) {
-        console.warn("[psqi] prefill fetch failed:", e?.message ?? e);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
-
   const s = makeStyles(theme);
 
   const setAnswer = (k, v) => setAnswers((prev) => ({ ...prev, [k]: v }));
   const goBack = () =>
-    navigation.canGoBack()
-      ? navigation.goBack()
-      : navigation.navigate("QuestionnaireHub");
+    navigation.canGoBack() ? navigation.goBack() : navigation.navigate("QuestionnaireHub");
   const allAnswered = isComplete(answers);
 
   const submit = async () => {
@@ -272,17 +240,8 @@ export default function SleepScreen({ navigation }) {
           theme={theme}
         />
         <ScrollView ref={scrollRef} contentContainerStyle={s.resultContainer}>
-          <View
-            style={[
-              s.resultBadge,
-              { borderColor: color, backgroundColor: color + "18" },
-            ]}
-          >
-            <Ionicons
-              name={isPoor ? "moon" : "moon-outline"}
-              size={52}
-              color={color}
-            />
+          <View style={[s.resultBadge, { borderColor: color, backgroundColor: color + "18" }]}>
+            <Ionicons name={isPoor ? "moon" : "moon-outline"} size={52} color={color} />
           </View>
           <Text style={s.resultTitle}>{resultLabel}</Text>
 
@@ -297,10 +256,7 @@ export default function SleepScreen({ navigation }) {
 
           <View style={{ height: Spacing.xl }} />
 
-          <TouchableOpacity
-            style={[s.primaryBtn, { backgroundColor: theme.accent }]}
-            onPress={goBack}
-          >
+          <TouchableOpacity style={[s.primaryBtn, { backgroundColor: theme.accent }]} onPress={goBack}>
             <Text style={s.primaryBtnText}>{t.done ?? "Done"}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={s.secondaryBtn} onPress={reset}>
@@ -323,19 +279,14 @@ export default function SleepScreen({ navigation }) {
         theme={theme}
       />
 
-      <ScrollView
-        ref={scrollRef}
-        contentContainerStyle={{ padding: Spacing.lg, paddingBottom: 40 }}
-      >
+      <ScrollView ref={scrollRef} contentContainerStyle={{ padding: Spacing.lg, paddingBottom: 40 }}>
         <Text style={s.intro}>
           {t.psqi_intro ?? "Reflect on your sleep over the past month."}
         </Text>
 
         {/* Q1 - bedtime */}
         <View style={s.qBlock}>
-          <Text style={s.qText}>
-            {t.psqi_q1 ?? "What time have you usually gone to bed?"}
-          </Text>
+          <Text style={s.qText}>{t.psqi_q1 ?? "What time have you usually gone to bed?"}</Text>
           <Text style={s.hint}>{t.psqi_q1_hint ?? "Bedtime (e.g. 23:00)"}</Text>
           <TextInput
             style={s.textInput}
@@ -349,9 +300,7 @@ export default function SleepScreen({ navigation }) {
 
         {/* Q2 - latency in minutes */}
         <View style={s.qBlock}>
-          <Text style={s.qText}>
-            {t.psqi_q2 ?? "How long does it usually take you to fall asleep?"}
-          </Text>
+          <Text style={s.qText}>{t.psqi_q2 ?? "How long does it usually take you to fall asleep?"}</Text>
           <Text style={s.hint}>{t.psqi_q2_hint ?? "In minutes"}</Text>
           <TextInput
             style={s.textInput}
@@ -365,12 +314,8 @@ export default function SleepScreen({ navigation }) {
 
         {/* Q3 - wake time */}
         <View style={s.qBlock}>
-          <Text style={s.qText}>
-            {t.psqi_q3 ?? "What time have you usually gotten up?"}
-          </Text>
-          <Text style={s.hint}>
-            {t.psqi_q3_hint ?? "Wake time (e.g. 07:00)"}
-          </Text>
+          <Text style={s.qText}>{t.psqi_q3 ?? "What time have you usually gotten up?"}</Text>
+          <Text style={s.hint}>{t.psqi_q3_hint ?? "Wake time (e.g. 07:00)"}</Text>
           <TextInput
             style={s.textInput}
             value={answers.q3 ?? ""}
@@ -383,18 +328,12 @@ export default function SleepScreen({ navigation }) {
 
         {/* Q4 - hours of sleep */}
         <View style={s.qBlock}>
-          <Text style={s.qText}>
-            {t.psqi_q4 ?? "How many hours of actual sleep did you get?"}
-          </Text>
-          <Text style={s.hint}>
-            {t.psqi_q4_hint ?? "Hours of sleep, not time in bed"}
-          </Text>
+          <Text style={s.qText}>{t.psqi_q4 ?? "How many hours of actual sleep did you get?"}</Text>
+          <Text style={s.hint}>{t.psqi_q4_hint ?? "Hours of sleep, not time in bed"}</Text>
           <TextInput
             style={s.textInput}
             value={answers.q4 != null ? String(answers.q4) : ""}
-            onChangeText={(v) =>
-              setAnswer("q4", v.replace(/[^0-9.,]/g, "").replace(",", "."))
-            }
+            onChangeText={(v) => setAnswer("q4", v.replace(/[^0-9.,]/g, "").replace(",", "."))}
             placeholder="7"
             placeholderTextColor={theme.textMuted}
             keyboardType="decimal-pad"
@@ -404,8 +343,7 @@ export default function SleepScreen({ navigation }) {
         {/* Q5 - 8 sub-items */}
         <View style={s.qBlock}>
           <Text style={[s.qText, { marginBottom: Spacing.sm }]}>
-            {t.psqi_q5_title ??
-              "How often have you had trouble sleeping because of..."}
+            {t.psqi_q5_title ?? "How often have you had trouble sleeping because of..."}
           </Text>
           {Q5_SUBITEMS.map((sub) => (
             <View key={sub} style={s.subBlock}>
@@ -417,9 +355,7 @@ export default function SleepScreen({ navigation }) {
 
         {/* Q6 - overall quality */}
         <View style={s.qBlock}>
-          <Text style={s.qText}>
-            {t.psqi_q6 ?? "How would you rate your sleep quality overall?"}
-          </Text>
+          <Text style={s.qText}>{t.psqi_q6 ?? "How would you rate your sleep quality overall?"}</Text>
           <View style={s.optRow}>
             {QUALITY_OPTS.map((opt) => {
               const isActive = answers.q6 === opt;
@@ -430,19 +366,12 @@ export default function SleepScreen({ navigation }) {
                     s.optBtn,
                     {
                       borderColor: isActive ? theme.accent : theme.border,
-                      backgroundColor: isActive
-                        ? theme.accent + "18"
-                        : "transparent",
+                      backgroundColor: isActive ? theme.accent + "18" : "transparent",
                     },
                   ]}
                   onPress={() => setAnswer("q6", opt)}
                 >
-                  <Text
-                    style={[
-                      s.optText,
-                      { color: isActive ? theme.accent : theme.textSecondary },
-                    ]}
-                  >
+                  <Text style={[s.optText, { color: isActive ? theme.accent : theme.textSecondary }]}>
                     {t[`psqi_quality${opt}`] ?? String(opt)}
                   </Text>
                 </TouchableOpacity>
@@ -453,27 +382,19 @@ export default function SleepScreen({ navigation }) {
 
         {/* Q7 - medication frequency */}
         <View style={s.qBlock}>
-          <Text style={s.qText}>
-            {t.psqi_q7 ??
-              "How often have you taken medicine to help you sleep?"}
-          </Text>
+          <Text style={s.qText}>{t.psqi_q7 ?? "How often have you taken medicine to help you sleep?"}</Text>
           <FreqOptions qKey="q7" />
         </View>
 
         {/* Q8 - daytime sleepiness */}
         <View style={s.qBlock}>
-          <Text style={s.qText}>
-            {t.psqi_q8 ?? "How often have you had trouble staying awake?"}
-          </Text>
+          <Text style={s.qText}>{t.psqi_q8 ?? "How often have you had trouble staying awake?"}</Text>
           <FreqOptions qKey="q8" />
         </View>
 
         {/* Q9 - enthusiasm problem */}
         <View style={s.qBlock}>
-          <Text style={s.qText}>
-            {t.psqi_q9 ??
-              "How much of a problem has it been to keep up enthusiasm?"}
-          </Text>
+          <Text style={s.qText}>{t.psqi_q9 ?? "How much of a problem has it been to keep up enthusiasm?"}</Text>
           <View style={s.optRow}>
             {PROBLEM_OPTS.map((opt) => {
               const isActive = answers.q9 === opt;
@@ -484,19 +405,12 @@ export default function SleepScreen({ navigation }) {
                     s.optBtn,
                     {
                       borderColor: isActive ? theme.accent : theme.border,
-                      backgroundColor: isActive
-                        ? theme.accent + "18"
-                        : "transparent",
+                      backgroundColor: isActive ? theme.accent + "18" : "transparent",
                     },
                   ]}
                   onPress={() => setAnswer("q9", opt)}
                 >
-                  <Text
-                    style={[
-                      s.optText,
-                      { color: isActive ? theme.accent : theme.textSecondary },
-                    ]}
-                  >
+                  <Text style={[s.optText, { color: isActive ? theme.accent : theme.textSecondary }]}>
                     {t[`psqi_problem${opt}`] ?? String(opt)}
                   </Text>
                 </TouchableOpacity>
@@ -536,13 +450,7 @@ const ss = StyleSheet.create({
   },
   headerBtn: { width: 40 },
   headerBack: { color: "#fff", fontSize: 28, lineHeight: 34 },
-  headerTitle: {
-    color: "#fff",
-    fontSize: FontSize.lg,
-    fontWeight: "700",
-    flex: 1,
-    textAlign: "center",
-  },
+  headerTitle: { color: "#fff", fontSize: FontSize.lg, fontWeight: "700", flex: 1, textAlign: "center" },
 });
 
 function makeStyles(theme) {
@@ -613,7 +521,6 @@ function makeStyles(theme) {
       fontWeight: "600",
     },
     primaryBtn: {
-      width: "100%",
       height: 50,
       borderRadius: Radius.md ?? 12,
       justifyContent: "center",
@@ -638,7 +545,7 @@ function makeStyles(theme) {
     resultContainer: {
       padding: Spacing.lg,
       paddingTop: Spacing.xl,
-      alignItems: "stretch",
+      alignItems: "center",
     },
     resultBadge: {
       width: 120,
@@ -648,7 +555,6 @@ function makeStyles(theme) {
       justifyContent: "center",
       alignItems: "center",
       marginBottom: Spacing.lg,
-      alignSelf: "center",
     },
     resultTitle: {
       fontSize: FontSize.xl,
@@ -656,14 +562,12 @@ function makeStyles(theme) {
       color: theme.text ?? "#0f172a",
       textAlign: "center",
       marginBottom: Spacing.lg,
-      alignSelf: "center",
     },
     scoresRow: {
       flexDirection: "row",
       justifyContent: "center",
       gap: Spacing.md,
       marginBottom: Spacing.md,
-      alignSelf: "center",
     },
     scoreCard: {
       borderWidth: 2,

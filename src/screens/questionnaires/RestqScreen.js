@@ -47,7 +47,12 @@ function LikertRow({ value, onChange, color, t }) {
               ]}
               activeOpacity={0.7}
             >
-              <Text style={[likertStyles.pillText, active && { color: "#fff", fontWeight: "800" }]}>
+              <Text
+                style={[
+                  likertStyles.pillText,
+                  active && { color: "#fff", fontWeight: "800" },
+                ]}
+              >
                 {n}
               </Text>
             </TouchableOpacity>
@@ -75,7 +80,11 @@ const likertStyles = StyleSheet.create({
     justifyContent: "center",
   },
   pillText: { fontSize: 14, fontWeight: "600", color: "#666" },
-  labelRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 6 },
+  labelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 6,
+  },
   label: { fontSize: 11, color: "#888" },
 });
 
@@ -116,35 +125,70 @@ export default function RestqScreen({ navigation }) {
 
   if (result) {
     return (
-      <View style={[s.root, { backgroundColor: theme.bgSecondary ?? "#F0F4F8" }]}>
-        <View style={[s.header, { paddingTop: insets.top + Spacing.sm, backgroundColor: PRIMARY }]}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn} hitSlop={12}>
+      <View
+        style={[s.root, { backgroundColor: theme.bgSecondary ?? "#F0F4F8" }]}
+      >
+        <View
+          style={[
+            s.header,
+            { paddingTop: insets.top + Spacing.sm, backgroundColor: PRIMARY },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={s.headerBtn}
+            hitSlop={12}
+          >
             <Ionicons name="chevron-back" size={26} color="#fff" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>{t.restqTitle ?? "Recovery-Stress"}</Text>
           <View style={s.headerBtn} />
         </View>
-        <View style={{ flex: 1, padding: Spacing.lg, justifyContent: "center" }}>
+        <View
+          style={{ flex: 1, padding: Spacing.lg, justifyContent: "center" }}
+        >
           <View style={s.resultCard}>
-            <Ionicons name="checkmark-circle" size={56} color={PRIMARY} style={{ alignSelf: "center" }} />
+            <Ionicons
+              name="checkmark-circle"
+              size={56}
+              color={PRIMARY}
+              style={{ alignSelf: "center" }}
+            />
             <Text style={s.resultTitle}>{t.restqSaved ?? "Saved"}</Text>
-            <View style={{ flexDirection: "row", gap: 24, marginTop: Spacing.xl, justifyContent: "center" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 24,
+                marginTop: Spacing.xl,
+                justifyContent: "center",
+              }}
+            >
               <View style={{ alignItems: "center" }}>
                 <Text style={s.resultLabel}>{t.restqStress ?? "Stress"}</Text>
-                <Text style={[s.resultScore, { color: "#DC2626" }]}>{result.scores?.stress ?? "—"}</Text>
+                <Text style={[s.resultScore, { color: "#DC2626" }]}>
+                  {result.scores?.stress ?? "—"}
+                </Text>
               </View>
               <View style={{ alignItems: "center" }}>
-                <Text style={s.resultLabel}>{t.restqRecovery ?? "Recovery"}</Text>
-                <Text style={[s.resultScore, { color: "#16A34A" }]}>{result.scores?.recovery ?? "—"}</Text>
+                <Text style={s.resultLabel}>
+                  {t.restqRecovery ?? "Recovery"}
+                </Text>
+                <Text style={[s.resultScore, { color: "#16A34A" }]}>
+                  {result.scores?.recovery ?? "—"}
+                </Text>
               </View>
             </View>
             <Text style={s.resultLabel}>{t.restqBalance ?? "Balance"}</Text>
             <Text style={[s.resultScore, { color: PRIMARY }]}>
-              {result.scores?.balance >= 0 ? "+" : ""}{result.scores?.balance ?? "—"}
+              {result.scores?.balance >= 0 ? "+" : ""}
+              {result.scores?.balance ?? "—"}
             </Text>
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              style={[s.saveBtn, { backgroundColor: PRIMARY, marginTop: Spacing.xl }]}
+              style={[
+                s.saveBtn,
+                { backgroundColor: PRIMARY, marginTop: Spacing.xl },
+              ]}
             >
               <Text style={s.saveBtnText}>OK</Text>
             </TouchableOpacity>
@@ -156,8 +200,17 @@ export default function RestqScreen({ navigation }) {
 
   return (
     <View style={[s.root, { backgroundColor: theme.bgSecondary ?? "#F0F4F8" }]}>
-      <View style={[s.header, { paddingTop: insets.top + Spacing.sm, backgroundColor: PRIMARY }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn} hitSlop={12}>
+      <View
+        style={[
+          s.header,
+          { paddingTop: insets.top + Spacing.sm, backgroundColor: PRIMARY },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={s.headerBtn}
+          hitSlop={12}
+        >
           <Ionicons name="chevron-back" size={26} color="#fff" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>{t.restqTitle ?? "Recovery-Stress"}</Text>
@@ -168,12 +221,23 @@ export default function RestqScreen({ navigation }) {
         <View
           style={[
             s.progressFill,
-            { backgroundColor: PRIMARY, width: ((page + 1) / PAGES) * 100 + "%" },
+            {
+              backgroundColor: PRIMARY,
+              width: ((page + 1) / PAGES) * 100 + "%",
+            },
           ]}
         />
       </View>
       <Text style={s.progressText}>
-        {(t.restqPage ?? "Question") + " " + (pageStart + 1) + "–" + pageEnd + " " + (t.restqOf ?? "of") + " " + TOTAL}
+        {(t.restqPage ?? "Question") +
+          " " +
+          (pageStart + 1) +
+          "–" +
+          pageEnd +
+          " " +
+          (t.restqOf ?? "of") +
+          " " +
+          TOTAL}
       </Text>
 
       <ScrollView
@@ -186,7 +250,9 @@ export default function RestqScreen({ navigation }) {
           return (
             <View key={globalIdx} style={s.qCard}>
               <Text style={s.qNum}>{globalIdx + 1}.</Text>
-              <Text style={s.qText}>{t[itemKey] ?? ("Item " + (globalIdx + 1))}</Text>
+              <Text style={s.qText}>
+                {t[itemKey] ?? "Item " + (globalIdx + 1)}
+              </Text>
               <LikertRow
                 value={val}
                 onChange={(v) => setAnswer(globalIdx, v)}
@@ -202,28 +268,46 @@ export default function RestqScreen({ navigation }) {
         <TouchableOpacity
           onPress={() => setPage((p) => Math.max(0, p - 1))}
           disabled={page === 0}
-          style={[s.navBtn, { borderColor: PRIMARY }, page === 0 && { opacity: 0.3 }]}
+          style={[
+            s.navBtn,
+            { borderColor: PRIMARY },
+            page === 0 && { opacity: 0.3 },
+          ]}
         >
-          <Text style={[s.navBtnText, { color: PRIMARY }]}>{t.restqPrev ?? "BACK"}</Text>
+          <Text style={[s.navBtnText, { color: PRIMARY }]}>
+            {t.restqPrev ?? "BACK"}
+          </Text>
         </TouchableOpacity>
         {page < PAGES - 1 ? (
           <TouchableOpacity
             onPress={() => setPage((p) => Math.min(PAGES - 1, p + 1))}
             disabled={!pageComplete}
-            style={[s.navBtn, { backgroundColor: PRIMARY, borderColor: PRIMARY }, !pageComplete && { opacity: 0.4 }]}
+            style={[
+              s.navBtn,
+              { backgroundColor: PRIMARY, borderColor: PRIMARY },
+              !pageComplete && { opacity: 0.4 },
+            ]}
           >
-            <Text style={[s.navBtnText, { color: "#fff" }]}>{t.restqNext ?? "NEXT"}</Text>
+            <Text style={[s.navBtnText, { color: "#fff" }]}>
+              {t.restqNext ?? "NEXT"}
+            </Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
             onPress={submit}
             disabled={!allComplete || saving}
-            style={[s.navBtn, { backgroundColor: PRIMARY, borderColor: PRIMARY }, (!allComplete || saving) && { opacity: 0.4 }]}
+            style={[
+              s.navBtn,
+              { backgroundColor: PRIMARY, borderColor: PRIMARY },
+              (!allComplete || saving) && { opacity: 0.4 },
+            ]}
           >
             {saving ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={[s.navBtnText, { color: "#fff" }]}>{t.restqSubmit ?? "SUBMIT"}</Text>
+              <Text style={[s.navBtnText, { color: "#fff" }]}>
+                {t.restqSubmit ?? "SUBMIT"}
+              </Text>
             )}
           </TouchableOpacity>
         )}
@@ -275,8 +359,18 @@ function makeStyles(theme) {
       shadowOffset: { width: 0, height: 2 },
       elevation: 2,
     },
-    qNum: { color: theme.accent, fontSize: FontSize.xs, fontWeight: "800", marginBottom: 4 },
-    qText: { color: theme.text, fontSize: FontSize.md, fontWeight: "500", lineHeight: 22 },
+    qNum: {
+      color: theme.accent,
+      fontSize: FontSize.xs,
+      fontWeight: "800",
+      marginBottom: 4,
+    },
+    qText: {
+      color: theme.text,
+      fontSize: FontSize.md,
+      fontWeight: "500",
+      lineHeight: 22,
+    },
     footer: {
       flexDirection: "row",
       gap: 12,
@@ -294,7 +388,16 @@ function makeStyles(theme) {
       justifyContent: "center",
       alignItems: "center",
     },
-    navBtnText: { fontSize: FontSize.md, fontWeight: "800", letterSpacing: 1.5 },
+    resultContainer: {
+      padding: Spacing.lg,
+      paddingTop: Spacing.xl,
+      alignItems: "center", // ← change to "stretch"
+    },
+    navBtnText: {
+      fontSize: FontSize.md,
+      fontWeight: "800",
+      letterSpacing: 1.5,
+    },
     resultCard: {
       backgroundColor: theme.bg ?? "#fff",
       borderRadius: Radius.lg,
@@ -307,7 +410,11 @@ function makeStyles(theme) {
       fontWeight: "800",
       marginTop: Spacing.md,
     },
-    resultLabel: { color: theme.textMuted, fontSize: FontSize.sm, marginTop: Spacing.md },
+    resultLabel: {
+      color: theme.textMuted,
+      fontSize: FontSize.sm,
+      marginTop: Spacing.md,
+    },
     resultScore: { fontSize: 36, fontWeight: "900", marginTop: 4 },
     saveBtn: {
       height: 56,
@@ -316,6 +423,11 @@ function makeStyles(theme) {
       alignItems: "center",
       width: "100%",
     },
-    saveBtnText: { color: "#fff", fontSize: FontSize.md, fontWeight: "800", letterSpacing: 2 },
+    saveBtnText: {
+      color: "#fff",
+      fontSize: FontSize.md,
+      fontWeight: "800",
+      letterSpacing: 2,
+    },
   });
 }

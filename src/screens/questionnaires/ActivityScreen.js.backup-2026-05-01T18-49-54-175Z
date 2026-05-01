@@ -2,7 +2,7 @@
 // Yearly International Physical Activity Questionnaire (IPAQ-SF).
 // 7 numeric items. Output: MET-minutes/week + low/moderate/high classification.
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -83,30 +83,6 @@ export default function ActivityScreen({ navigation }) {
   const [answers, setAnswers] = useState({});
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState(null);
-
-  const [loading, setLoading] = useState(true);
-
-  // [prefill] mounted-fetch added
-  // Fetch the latest submission once on mount and prefill the answers.
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const list = await questionnairesApi.list({ type: "ipaq", limit: 1 });
-        if (!alive) return;
-        const last = Array.isArray(list) ? list[0] : null;
-        if (last && last.answers && typeof last.answers === "object") {
-          setAnswers(last.answers);
-        }
-      } catch (e) {
-        console.warn("[ipaq] prefill fetch failed:", e?.message ?? e);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => { alive = false; };
-  }, []);
-
 
   const s = makeStyles(theme);
 
@@ -376,7 +352,7 @@ function makeStyles(theme) {
     resultContainer: {
       padding: Spacing.lg,
       paddingTop: Spacing.xl,
-      alignItems: "stretch",
+      alignItems: "center",
     },
     resultBadge: {
       width: 120,
@@ -386,7 +362,6 @@ function makeStyles(theme) {
       justifyContent: "center",
       alignItems: "center",
       marginBottom: Spacing.lg,
-      alignSelf: "center"
     },
     resultTitle: {
       fontSize: FontSize.xl,
@@ -394,14 +369,12 @@ function makeStyles(theme) {
       color: theme.text ?? "#0f172a",
       textAlign: "center",
       marginBottom: Spacing.lg,
-      alignSelf: "center"
     },
     scoresRow: {
       flexDirection: "row",
       justifyContent: "center",
       gap: Spacing.md,
       marginBottom: Spacing.md,
-      alignSelf: "center"
     },
     scoreCard: {
       borderWidth: 2,
