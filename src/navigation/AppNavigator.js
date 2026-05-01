@@ -37,6 +37,7 @@ import ChangeEmailScreen from "../screens/profile/ChangeEmailScreen";
 import AboutScreen from "../screens/settings/AboutScreen";
 import LanguageScreen from "../screens/settings/LanguageScreen";
 import PersonalSettingsScreen from "../screens/settings/PersonalSettingsScreen";
+import GoalsScreen from "../screens/questionnaires/GoalsScreen";
 
 const ONBOARDED_KEY = "@coachly:onboarded";
 
@@ -83,6 +84,7 @@ function AppStack() {
       <Stack.Screen name="QuestionnaireHub" component={QuestionnaireHubScreen} />
       <Stack.Screen name="Hooper" component={HooperScreen} />
       <Stack.Screen name="Restq" component={RestqScreen} />
+      <Stack.Screen name="Goals" component={GoalsScreen} />
       <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="Language" component={LanguageScreen} />

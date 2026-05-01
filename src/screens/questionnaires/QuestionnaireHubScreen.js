@@ -23,7 +23,11 @@ function formatDate(dateStr) {
   if (!dateStr) return null;
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export default function QuestionnaireHubScreen({ navigation }) {
@@ -50,16 +54,24 @@ export default function QuestionnaireHubScreen({ navigation }) {
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
 
   const s = makeStyles(theme);
 
-  const Card = ({ titleKey, subtitleKey, descKey, startKey, lastDate, onPress, icon }) => (
-    <TouchableOpacity
-      style={s.card}
-      onPress={onPress}
-      activeOpacity={0.85}
-    >
+  const Card = ({
+    titleKey,
+    subtitleKey,
+    descKey,
+    startKey,
+    lastDate,
+    onPress,
+    icon,
+  }) => (
+    <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>
       <View style={s.cardHeader}>
         <View style={[s.iconCircle, { backgroundColor: PRIMARY + "22" }]}>
           <Ionicons name={icon} size={26} color={PRIMARY} />
@@ -73,7 +85,9 @@ export default function QuestionnaireHubScreen({ navigation }) {
       <View style={s.cardFooter}>
         <Text style={s.cardMeta}>
           {lastDate
-            ? (t.hooperLastDone ?? "Last completed") + ": " + formatDate(lastDate)
+            ? (t.hooperLastDone ?? "Last completed") +
+              ": " +
+              formatDate(lastDate)
             : (t.hooperNever ?? "Not completed yet")}
         </Text>
         <View style={[s.startBtn, { backgroundColor: PRIMARY }]}>
@@ -85,20 +99,36 @@ export default function QuestionnaireHubScreen({ navigation }) {
 
   return (
     <View style={[s.root, { backgroundColor: theme.bgSecondary ?? "#F0F4F8" }]}>
-      <View style={[s.header, { paddingTop: insets.top + Spacing.sm, backgroundColor: PRIMARY }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn} hitSlop={12}>
+      <View
+        style={[
+          s.header,
+          { paddingTop: insets.top + Spacing.sm, backgroundColor: PRIMARY },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={s.headerBtn}
+          hitSlop={12}
+        >
           <Ionicons name="chevron-back" size={26} color="#fff" />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>{t.questionnaires ?? "Questionnaires"}</Text>
+        <Text style={s.headerTitle}>
+          {t.questionnaires ?? "Questionnaires"}
+        </Text>
         <View style={s.headerBtn} />
       </View>
 
       {loading ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <ActivityIndicator size="large" color={PRIMARY} />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={{ padding: Spacing.lg, paddingBottom: 40 }}>
+        <ScrollView
+          contentContainerStyle={{ padding: Spacing.lg, paddingBottom: 40 }}
+        >
+          { /*
           <Card
             titleKey="hooperTitle"
             subtitleKey="hooperSubtitle"
@@ -108,6 +138,7 @@ export default function QuestionnaireHubScreen({ navigation }) {
             onPress={() => navigation.navigate("Hooper")}
             icon="pulse"
           />
+         
           <Card
             titleKey="restqTitle"
             subtitleKey="restqSubtitle"
@@ -117,6 +148,16 @@ export default function QuestionnaireHubScreen({ navigation }) {
             onPress={() => navigation.navigate("Restq")}
             icon="clipboard-outline"
           />
+           */ }
+          <Card
+            titleKey="goalsTitle"
+            subtitleKey="goalsSubtitle"
+            descKey="goalsDesc"
+            startKey="goalsStart"
+            lastDate={null}
+            onPress={() => navigation.navigate("Goals")}
+            icon="flag-outline"
+          /> 
         </ScrollView>
       )}
 
@@ -160,11 +201,18 @@ function makeStyles(theme) {
       marginBottom: Spacing.md,
     },
     iconCircle: {
-      width: 48, height: 48, borderRadius: 24,
-      justifyContent: "center", alignItems: "center",
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: "center",
+      alignItems: "center",
     },
     cardTitle: { color: theme.text, fontSize: FontSize.lg, fontWeight: "700" },
-    cardSubtitle: { color: theme.textMuted, fontSize: FontSize.sm, marginTop: 2 },
+    cardSubtitle: {
+      color: theme.textMuted,
+      fontSize: FontSize.sm,
+      marginTop: 2,
+    },
     cardDesc: {
       color: theme.textSecondary,
       fontSize: FontSize.sm,

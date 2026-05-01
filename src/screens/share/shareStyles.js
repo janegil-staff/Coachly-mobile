@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 import { FontSize, Spacing } from "../../constants/theme";
 
 export const TOTAL_SECONDS = 10 * 60;
-export const SHARE_DOMAIN = "https://coachly.app/share";
+export const SHARE_DOMAIN = "https://quptrain.com";
 
 export const styles = StyleSheet.create({
   root: { flex: 1 },
