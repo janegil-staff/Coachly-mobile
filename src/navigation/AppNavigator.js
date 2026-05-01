@@ -38,6 +38,9 @@ import AboutScreen from "../screens/settings/AboutScreen";
 import LanguageScreen from "../screens/settings/LanguageScreen";
 import PersonalSettingsScreen from "../screens/settings/PersonalSettingsScreen";
 import GoalsScreen from "../screens/questionnaires/GoalsScreen";
+import StressScreen from "../screens/questionnaires/StressScreen";
+import SleepScreen from "../screens/questionnaires/SleepScreen";
+import ActivityScreen from "../screens/questionnaires/ActivityScreen";
 
 const ONBOARDED_KEY = "@coachly:onboarded";
 
@@ -81,14 +84,35 @@ function AppStack() {
       <Stack.Screen name="Advice" component={AdviceScreen} />
       <Stack.Screen name="Share" component={ShareScreen} />
       <Stack.Screen name="Studies" component={StudiesScreen} />
-      <Stack.Screen name="QuestionnaireHub" component={QuestionnaireHubScreen} />
+      <Stack.Screen
+        name="QuestionnaireHub"
+        component={QuestionnaireHubScreen}
+      />
       <Stack.Screen name="Hooper" component={HooperScreen} />
       <Stack.Screen name="Restq" component={RestqScreen} />
       <Stack.Screen name="Goals" component={GoalsScreen} />
+      <Stack.Screen
+        name="Stress"
+        component={StressScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Sleep"
+        component={SleepScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Activity"
+        component={ActivityScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="Language" component={LanguageScreen} />
-      <Stack.Screen name="PersonalSettings" component={PersonalSettingsScreen} />
+      <Stack.Screen
+        name="PersonalSettings"
+        component={PersonalSettingsScreen}
+      />
       <Stack.Screen name="PinSetup" component={PinSetupScreen} />
       <Stack.Screen name="PinConfirm" component={PinConfirmScreen} />
     </Stack.Navigator>

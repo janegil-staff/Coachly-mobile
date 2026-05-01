@@ -58,7 +58,33 @@ export default function QuestionnaireHubScreen({ navigation }) {
   const [latestHooper, setLatestHooper] = useState(null);
   const [latestRestq, setLatestRestq] = useState(null);
   const [latestGoals, setLatestGoals] = useState(null);
+  const [latestStress, setLatestStress] = useState(null);
+  const [latestSleep, setLatestSleep] = useState(null);
+  const [latestActivity, setLatestActivity] = useState(null);
 
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      (async () => {
+        try {
+          const [pss, psqi, ipaq] = await Promise.all([
+            questionnairesApi.list({ type: "pss10", limit: 1 }),
+            questionnairesApi.list({ type: "psqi", limit: 1 }),
+            questionnairesApi.list({ type: "ipaq", limit: 1 }),
+          ]);
+          if (!alive) return;
+          setLatestStress(pss?.[0] ?? null);
+          setLatestSleep(psqi?.[0] ?? null);
+          setLatestActivity(ipaq?.[0] ?? null);
+        } catch (e) {
+          console.warn("Hub fetch failed:", e?.message ?? e);
+        }
+      })();
+      return () => {
+        alive = false;
+      };
+    }, []),
+  );
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -94,10 +120,9 @@ export default function QuestionnaireHubScreen({ navigation }) {
   }) => {
     const lastDate = lastDoc?.date;
     const scoreLabel = formatScore(lastDoc);
-    const completedLabel =
-      lastDate
-        ? (t.hooperLastDone ?? "Last completed") + ": " + formatDate(lastDate)
-        : (t.hooperNever ?? "Not completed yet");
+    const completedLabel = lastDate
+      ? (t.hooperLastDone ?? "Last completed") + ": " + formatDate(lastDate)
+      : (t.hooperNever ?? "Not completed yet");
 
     return (
       <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>
@@ -187,6 +212,35 @@ export default function QuestionnaireHubScreen({ navigation }) {
             lastDoc={latestGoals}
             onPress={() => navigation.navigate("Goals")}
             icon="flag-outline"
+          />
+          <Card
+            titleKey="pss10_title"
+            subtitleKey="pss10_subtitle"
+            descKey="pss10_intro"
+            startKey="goalsStart"
+            lastDoc={latestStress}
+            onPress={() => navigation.navigate("Stress")}
+            icon="pulse-outline"
+          />
+
+          <Card
+            titleKey="psqi_title"
+            subtitleKey="psqi_subtitle"
+            descKey="psqi_intro"
+            startKey="goalsStart"
+            lastDoc={latestSleep}
+            onPress={() => navigation.navigate("Sleep")}
+            icon="moon-outline"
+          />
+
+          <Card
+            titleKey="ipaq_title"
+            subtitleKey="ipaq_subtitle"
+            descKey="ipaq_intro"
+            startKey="goalsStart"
+            lastDoc={latestActivity}
+            onPress={() => navigation.navigate("Activity")}
+            icon="walk-outline"
           />
         </ScrollView>
       )}
