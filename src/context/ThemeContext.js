@@ -15,7 +15,7 @@ const ThemeContext = createContext({
 });
 
 export function ThemeProvider({ children }) {
-  const [mode, setModeState] = useState("system");
+  const [mode, setModeState] = useState("light");
   const [systemScheme, setSystemScheme] = useState(
     Appearance.getColorScheme() || "light"
   );

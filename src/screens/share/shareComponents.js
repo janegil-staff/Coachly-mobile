@@ -1,10 +1,15 @@
 // src/screens/share/shareComponents.js
 import React from "react";
 import { View, Text } from "react-native";
-import Svg, { Circle, Path } from "react-native-svg";
+import Svg, { Circle, Path, Rect, Line } from "react-native-svg";
 import { TOTAL_SECONDS } from "./shareStyles";
 
-export function ArcTimer({ secondsLeft, total = TOTAL_SECONDS, color }) {
+export function ArcTimer({
+  secondsLeft,
+  total = TOTAL_SECONDS,
+  color,
+  bgColor = "#e8eef5", // theme.surfaceAlt should be passed by callers
+}) {
   const SIZE = 200;
   const STROKE = 10;
   const R = (SIZE - STROKE) / 2;
@@ -33,7 +38,7 @@ export function ArcTimer({ secondsLeft, total = TOTAL_SECONDS, color }) {
   return (
     <View style={{ alignItems: "center", justifyContent: "center", width: SIZE, height: SIZE }}>
       <Svg width={SIZE} height={SIZE}>
-        <Path d={bgPath} stroke="#e8eef5" strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+        <Path d={bgPath} stroke={bgColor} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
         {fgPath && <Path d={fgPath} stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />}
       </Svg>
       <View style={{ position: "absolute", alignItems: "center" }}>
@@ -62,7 +67,6 @@ export function BrandBubble({ color }) {
 }
 
 // ── Tab icons ─────────────────────────────────────────────────────────────
-import { Rect, Line } from "react-native-svg";
 
 export function IconCode({ color, size = 24 }) {
   return (

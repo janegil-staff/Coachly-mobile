@@ -1,5 +1,7 @@
 // src/screens/log/LogHistoryScreen.js
 // Coachly fitness diary — Calendar + Diary tabs with score-colored cells.
+// Theme-aware: uses theme.surface / theme.surfaceAlt / theme.text / theme.textMuted
+// throughout instead of hardcoded white/grey/navy.
 
 import React, { useState, useCallback } from "react";
 import {
@@ -29,7 +31,6 @@ function categoryLabel(cat, t) {
   return t["category" + cat[0].toUpperCase() + cat.slice(1)] ?? cat;
 }
 
-// Bucket backend 0-100 composite score into UI 1-5
 function bucketScore(score0to100) {
   if (score0to100 == null) return null;
   if (score0to100 >= 80) return 5;
@@ -39,14 +40,13 @@ function bucketScore(score0to100) {
   return 1;
 }
 
-// Score colors — 5 = green (best), 1 = red (worst)
 function scoreColor(bucket) {
   const map = {
-    5: "#16A34A", // green
-    4: "#84CC16", // lime
-    3: "#D97706", // amber
-    2: "#F97316", // orange
-    1: "#DC2626", // red
+    5: "#16A34A",
+    4: "#84CC16",
+    3: "#D97706",
+    2: "#F97316",
+    1: "#DC2626",
   };
   return map[bucket] ?? "#b3cde8";
 }
@@ -66,37 +66,27 @@ function scoreLabel(bucket, t) {
 function daysInMonth(y, m) {
   return new Date(y, m + 1, 0).getDate();
 }
-
 function firstWeekday(y, m) {
   const d = new Date(y, m, 1).getDay();
-  return d === 0 ? 6 : d - 1; // Mon=0..Sun=6
+  return d === 0 ? 6 : d - 1;
 }
-
 function toDateStr(y, m, d) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-// Build a list of { category, durationMinutes, exercises[] } from a log entry.
-// Handles both new shape (categoryDurations + workouts-as-exercises) and
-// legacy shape (workouts with durationMinutes inline).
 function buildWorkoutRows(log) {
   if (!log) return [];
-
   const fromCategoryDurations = Array.isArray(log.categoryDurations)
     ? log.categoryDurations
     : [];
-
-  // Map of category -> exercise names from log.workouts
   const exercisesByCat = {};
   if (Array.isArray(log.workouts)) {
     for (const w of log.workouts) {
       if (!w?.type) continue;
-      if (!w.name && !w.exerciseSlug && !w.exerciseId) continue; // skip placeholder rows
+      if (!w.name && !w.exerciseSlug && !w.exerciseId) continue;
       (exercisesByCat[w.type] ||= []).push(w.name ?? "");
     }
   }
-
-  // New shape: one row per categoryDuration entry.
   if (fromCategoryDurations.length) {
     const ordered = [...fromCategoryDurations].sort(
       (a, b) => CATEGORY_ORDER.indexOf(a.type) - CATEGORY_ORDER.indexOf(b.type),
@@ -107,9 +97,6 @@ function buildWorkoutRows(log) {
       exercises: exercisesByCat[c.type] ?? [],
     }));
   }
-
-  // Legacy shape: workouts had inline durationMinutes — sum per category and
-  // surface no exercise sub-list.
   if (Array.isArray(log.workouts) && log.workouts.length > 0) {
     const byType = {};
     for (const w of log.workouts) {
@@ -124,7 +111,6 @@ function buildWorkoutRows(log) {
         exercises: [],
       }));
   }
-
   return [];
 }
 
@@ -136,8 +122,9 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
   const [month, setMonth] = useState(now.getMonth());
 
   const PRIMARY = theme.accent;
-  const NAVY = "#1a2c3d";
-  const MUTED = "#7a9ab8";
+  // Use theme tokens instead of hardcoded NAVY/MUTED
+  const HEADING = theme.text;
+  const MUTED = theme.textMuted;
 
   const goBack = () => {
     if (month === 0) {
@@ -178,45 +165,32 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
   const today = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
 
   const months = t.monthsShort ?? [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
   const weekdays = t.weekdaysShort ?? [
-    "Mon",
-    "Tue",
-    "Wed",
-    "Thu",
-    "Fri",
-    "Sat",
-    "Sun",
+    "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun",
   ];
 
   const countByScore = [1, 2, 3, 4, 5].map((s) => ({
     score: s,
-    count: monthLogs.filter((l) => bucketScore(scoresByDate[l.date]) === s)
-      .length,
+    count: monthLogs.filter((l) => bucketScore(scoresByDate[l.date]) === s).length,
     label: scoreLabel(s, t),
     color: scoreColor(s),
   }));
+
+  const cardBg = theme.surface ?? "#fff";
+  const cardBarBg = theme.surfaceAlt ?? "#e8eef5";
+  const dayInactiveBorder = theme.borderStrong ?? "#a0b8d0";
 
   return (
     <View style={{ flex: 1 }}>
       {/* Month nav */}
       <View style={cal.monthNav}>
         <TouchableOpacity onPress={goBack} style={cal.navBtn}>
-          <Text style={[cal.navArrow, { color: NAVY }]}>‹</Text>
+          <Text style={[cal.navArrow, { color: HEADING }]}>‹</Text>
         </TouchableOpacity>
-        <Text style={[cal.monthTitle, { color: NAVY }]}>
+        <Text style={[cal.monthTitle, { color: HEADING }]}>
           {months[month]?.toUpperCase()} {year}
         </Text>
         <TouchableOpacity
@@ -224,16 +198,14 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
           style={[cal.navBtn, isCurrentMonth && { opacity: 0.3 }]}
           disabled={isCurrentMonth}
         >
-          <Text
-            style={[cal.navArrow, { color: isCurrentMonth ? "#ccc" : NAVY }]}
-          >
+          <Text style={[cal.navArrow, { color: isCurrentMonth ? MUTED : HEADING }]}>
             ›
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Calendar card */}
-      <View style={cal.card}>
+      <View style={[cal.card, { backgroundColor: cardBg }]}>
         <View style={cal.weekdayRow}>
           {weekdays.map((d, i) => (
             <Text key={i} style={[cal.weekdayLabel, { color: MUTED }]}>
@@ -269,10 +241,11 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
                   <View
                     style={[
                       cal.cellInner,
+                      { borderColor: theme.borderStrong ?? "#2d4a6e" },
                       isFuture && { borderWidth: 0 },
                       !isFuture &&
                         bucket == null && {
-                          borderColor: "#a0b8d0",
+                          borderColor: dayInactiveBorder,
                           borderWidth: 2,
                         },
                       bg && { backgroundColor: bg, borderColor: bg },
@@ -286,7 +259,7 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
                     <Text
                       style={[
                         cal.cellText,
-                        { color: bucket != null ? "#fff" : NAVY },
+                        { color: bucket != null ? "#fff" : HEADING },
                         isToday &&
                           bucket == null && {
                             color: PRIMARY,
@@ -297,7 +270,7 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
                       {day}
                     </Text>
                     {isRest && (
-                      <View style={cal.restIcon}>
+                      <View style={[cal.restIcon, { backgroundColor: PRIMARY }]}>
                         <Ionicons name="bed" size={12} color="#fff" />
                       </View>
                     )}
@@ -308,7 +281,7 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
                     )}
                     {highSoreness && <Text style={cal.soreIcon}>🔥</Text>}
                     {hasNote && (
-                      <View style={cal.noteIcon}>
+                      <View style={[cal.noteIcon, { backgroundColor: PRIMARY }]}>
                         <Ionicons
                           name="chatbubble-ellipses"
                           size={10}
@@ -325,7 +298,7 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
       </View>
 
       {/* Legend */}
-      <View style={[cal.card, { paddingVertical: 10 }]}>
+      <View style={[cal.card, { backgroundColor: cardBg, paddingVertical: 10 }]}>
         <View style={cal.legendRow}>
           {[1, 2, 3, 4, 5].map((s) => (
             <View key={s} style={cal.legendItem}>
@@ -341,8 +314,8 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
       </View>
 
       {/* Month summary */}
-      <View style={cal.card}>
-        <Text style={[cal.sectionTitle, { color: NAVY }]}>
+      <View style={[cal.card, { backgroundColor: cardBg }]}>
+        <Text style={[cal.sectionTitle, { color: HEADING }]}>
           {t.monthSummary ?? "Month Summary"}
         </Text>
         <View style={cal.summaryRow}>
@@ -354,7 +327,7 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
               {t.daysLogged ?? "Days logged"}
             </Text>
           </View>
-          <View style={cal.divider} />
+          <View style={[cal.divider, { backgroundColor: cardBarBg }]} />
           <View style={cal.summaryItem}>
             <Text
               style={[
@@ -368,7 +341,7 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
               {t.avgScore ?? "Avg. score"}
             </Text>
           </View>
-          <View style={cal.divider} />
+          <View style={[cal.divider, { backgroundColor: cardBarBg }]} />
           <View style={cal.summaryItem}>
             <Text style={[cal.summaryValue, { color: PRIMARY }]}>
               {totalDays - totalLogged}
@@ -381,15 +354,15 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
       </View>
 
       {/* Score breakdown */}
-      <View style={[cal.card, { marginBottom: 40 }]}>
-        <Text style={[cal.sectionTitle, { color: NAVY }]}>
+      <View style={[cal.card, { backgroundColor: cardBg, marginBottom: 40 }]}>
+        <Text style={[cal.sectionTitle, { color: HEADING }]}>
           {t.scoreBreakdown ?? "Score Breakdown"}
         </Text>
         {countByScore.map(({ score, count, label, color }) => (
           <View key={score} style={cal.breakdownRow}>
             <View style={[cal.breakdownDot, { backgroundColor: color }]} />
-            <Text style={[cal.breakdownLabel, { color: NAVY }]}>{label}</Text>
-            <View style={cal.breakdownBarBg}>
+            <Text style={[cal.breakdownLabel, { color: HEADING }]}>{label}</Text>
+            <View style={[cal.breakdownBarBg, { backgroundColor: cardBarBg }]}>
               <View
                 style={[
                   cal.breakdownBar,
@@ -422,7 +395,6 @@ const cal = StyleSheet.create({
   navArrow: { fontSize: 28, fontWeight: "300" },
   monthTitle: { fontSize: 16, fontWeight: "800", letterSpacing: 1 },
   card: {
-    backgroundColor: "#fff",
     borderRadius: 14,
     padding: 16,
     marginHorizontal: 16,
@@ -455,7 +427,6 @@ const cal = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: "#2d4a6e",
     overflow: "visible",
   },
   cellText: { fontSize: 13, fontWeight: "600" },
@@ -466,14 +437,13 @@ const cal = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#4A7AB5",
     alignItems: "center",
     justifyContent: "center",
   },
   effortIcon: {
     position: "absolute",
     top: -6,
-    left: -6, // ← was right: -6
+    left: -6,
     width: 20,
     height: 20,
     borderRadius: 10,
@@ -489,7 +459,6 @@ const cal = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: "#4A7AB5",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -510,7 +479,7 @@ const cal = StyleSheet.create({
   summaryItem: { alignItems: "center", flex: 1 },
   summaryValue: { fontSize: 20, fontWeight: "800" },
   summarySubLabel: { fontSize: 11, marginTop: 2 },
-  divider: { width: 1, height: 40, backgroundColor: "#e8eef5" },
+  divider: { width: 1, height: 40 },
   breakdownRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -524,7 +493,6 @@ const cal = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     overflow: "hidden",
-    backgroundColor: "#e8eef5",
   },
   breakdownBar: { height: "100%", borderRadius: 4 },
   breakdownCount: {
@@ -538,21 +506,13 @@ const cal = StyleSheet.create({
 // ── Diary tab — grouped by month with day cards ───────────────────────────
 
 function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
-  const NAVY = "#1a2c3d";
-  const MUTED = "#7a9ab8";
+  const HEADING = theme.text;
+  const MUTED = theme.textMuted;
+  const cardBg = theme.surface ?? "#fff";
+
   const months = t.months ?? [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
   ];
   const [collapsed, setCollapsed] = useState({});
   const toggle = (key) => setCollapsed((p) => ({ ...p, [key]: !p[key] }));
@@ -604,8 +564,8 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
       }
       renderItem={({ item }) => {
         const pillBg =
-          item.avg != null ? scoreColor(item.avg) + "33" : "#e8eef5";
-        const pillText = item.avg != null ? scoreColor(item.avg) : NAVY;
+          item.avg != null ? scoreColor(item.avg) + "33" : (theme.surfaceAlt ?? "#e8eef5");
+        const pillText = item.avg != null ? scoreColor(item.avg) : HEADING;
         const isOpen = collapsed[item.key] !== false;
         return (
           <View style={{ marginBottom: 20 }}>
@@ -648,7 +608,7 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
                 return (
                   <TouchableOpacity
                     key={log.date}
-                    style={diary.dayCard}
+                    style={[diary.dayCard, { backgroundColor: cardBg }]}
                     onPress={() =>
                       navigation.navigate("Log", { date: log.date })
                     }
@@ -661,7 +621,7 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
                         {new Date(log.date).getDate()}
                       </Text>
                       {log.isRestDay && (
-                        <View style={diary.dayBadgeIcon}>
+                        <View style={[diary.dayBadgeIcon, { backgroundColor: theme.accent }]}>
                           <Ionicons name="bed" size={10} color="#fff" />
                         </View>
                       )}
@@ -672,21 +632,17 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
 
                     <View style={{ flex: 1 }}>
                       {log.isRestDay ? (
-                        <Text style={[diary.rowPrimary, { color: NAVY }]}>
+                        <Text style={[diary.rowPrimary, { color: HEADING }]}>
                           {t.restDay ?? "Rest day"}
                         </Text>
                       ) : rows.length === 0 ? (
-                        <Text style={[diary.rowPrimary, { color: NAVY }]}>
-                          —
-                        </Text>
+                        <Text style={[diary.rowPrimary, { color: HEADING }]}>—</Text>
                       ) : (
                         <>
                           {rows.map((r) => (
                             <View key={r.category} style={diary.workoutBlock}>
                               <View style={diary.workoutHeader}>
-                                <Text
-                                  style={[diary.workoutCat, { color: NAVY }]}
-                                >
+                                <Text style={[diary.workoutCat, { color: HEADING }]}>
                                   {categoryLabel(r.category, t)}
                                 </Text>
                                 <Text
@@ -704,10 +660,7 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
                                   {r.exercises.map((name, idx) => (
                                     <Text
                                       key={idx}
-                                      style={[
-                                        diary.exerciseItem,
-                                        { color: MUTED },
-                                      ]}
+                                      style={[diary.exerciseItem, { color: MUTED }]}
                                       numberOfLines={1}
                                     >
                                       • {name}
@@ -733,36 +686,24 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
 
                       <View style={diary.statsRow}>
                         {log.effort != null && (
-                          <Stat
-                            label={t.effort ?? "Effort"}
-                            value={log.effort}
-                          />
+                          <Stat label={t.effort ?? "Effort"} value={log.effort} color={theme.text} />
                         )}
                         {log.mood != null && (
-                          <Stat label={t.mood ?? "Mood"} value={log.mood} />
+                          <Stat label={t.mood ?? "Mood"} value={log.mood} color={theme.text} />
                         )}
                         {log.energy != null && (
-                          <Stat
-                            label={t.energy ?? "Energy"}
-                            value={log.energy}
-                          />
+                          <Stat label={t.energy ?? "Energy"} value={log.energy} color={theme.text} />
                         )}
                         {log.sleepQuality != null && (
-                          <Stat
-                            label={t.sleep ?? "Sleep"}
-                            value={log.sleepQuality}
-                          />
+                          <Stat label={t.sleep ?? "Sleep"} value={log.sleepQuality} color={theme.text} />
                         )}
                         {log.soreness != null && (
-                          <Stat
-                            label={t.soreness ?? "Sore"}
-                            value={log.soreness}
-                          />
+                          <Stat label={t.soreness ?? "Sore"} value={log.soreness} color={theme.text} />
                         )}
                       </View>
                       {!!log.note?.trim() && (
                         <Text
-                          style={[diary.note, { color: "#444" }]}
+                          style={[diary.note, { color: theme.textSecondary ?? "#444" }]}
                           numberOfLines={2}
                         >
                           {log.note}
@@ -796,9 +737,9 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
   );
 }
 
-function Stat({ label, value }) {
+function Stat({ label, value, color }) {
   return (
-    <Text style={{ color: "#444", fontSize: 12, marginRight: 10 }}>
+    <Text style={{ color: color ?? "#444", fontSize: 12, marginRight: 10 }}>
       <Text style={{ fontWeight: "700" }}>{label}:</Text> {value}/5
     </Text>
   );
@@ -817,7 +758,6 @@ const diary = StyleSheet.create({
   pillTitle: { fontSize: 20, fontWeight: "800" },
   pillSub: { fontSize: 13, marginTop: 2, opacity: 0.8 },
   dayCard: {
-    backgroundColor: "#fff",
     borderRadius: 16,
     marginBottom: 10,
     padding: 14,
@@ -846,7 +786,6 @@ const diary = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#4A7AB5",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -894,7 +833,6 @@ export default function LogHistoryScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
   const PRIMARY = theme.accent;
 
-  // Fetch logs + scores on focus
   useFocusEffect(
     useCallback(() => {
       fetchLogs();
@@ -921,7 +859,7 @@ export default function LogHistoryScreen({ navigation, route }) {
   const loading = logsLoading || scoresLoading;
 
   return (
-    <View style={[s.root, { backgroundColor: "#F0F4F8" }]}>
+    <View style={[s.root, { backgroundColor: theme.surfaceAlt ?? theme.bg ?? "#F0F4F8" }]}>
       <View
         style={[
           s.header,
@@ -935,7 +873,7 @@ export default function LogHistoryScreen({ navigation, route }) {
         <View style={{ width: 40 }} />
       </View>
 
-      <View style={s.tabBar}>
+      <View style={[s.tabBar, { backgroundColor: theme.surface ?? "#fff", borderBottomColor: theme.border ?? "#e8eef5" }]}>
         {["calendar", "diary"].map((tab) => {
           const isActive = activeTab === tab;
           const label =
@@ -947,6 +885,7 @@ export default function LogHistoryScreen({ navigation, route }) {
               key={tab}
               style={[
                 s.tab,
+                { backgroundColor: theme.surface ?? "#fff", borderColor: theme.border ?? "#dde5ee" },
                 isActive && {
                   borderColor: PRIMARY,
                   overflow: "hidden",
@@ -961,7 +900,7 @@ export default function LogHistoryScreen({ navigation, route }) {
                   <Text style={s.tabTextActive}>{label}</Text>
                 </View>
               ) : (
-                <Text style={s.tabText}>{label}</Text>
+                <Text style={[s.tabText, { color: theme.textMuted ?? "#8fa8c8" }]}>{label}</Text>
               )}
             </TouchableOpacity>
           );
@@ -1022,18 +961,14 @@ function makeStyles(theme) {
       paddingHorizontal: 16,
       paddingVertical: 12,
       gap: 8,
-      backgroundColor: "#fff",
       borderBottomWidth: 1,
-      borderBottomColor: theme.border ?? "#e8eef5",
     },
     tab: {
       flex: 1,
       borderRadius: 6,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: "#fff",
       borderWidth: 1,
-      borderColor: theme.border ?? "#dde5ee",
       paddingVertical: 16,
     },
     tabActive: {
@@ -1043,7 +978,6 @@ function makeStyles(theme) {
       paddingVertical: 16,
     },
     tabText: {
-      color: theme.textMuted ?? "#8fa8c8",
       fontSize: FontSize.sm,
       fontWeight: "600",
     },

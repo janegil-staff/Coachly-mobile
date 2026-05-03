@@ -1,7 +1,7 @@
 // src/screens/share/ShareScreen.js
 // 6-digit share code valid for 10 min + 3-tab bottom bar (Code / Questionnaire / Studies).
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
 import { shareApi } from "../../services/api";
-import { styles, TOTAL_SECONDS, SHARE_DOMAIN } from "./shareStyles";
+import { makeShareStyles, TOTAL_SECONDS, SHARE_DOMAIN } from "./shareStyles";
 import { ArcTimer, BrandBubble } from "./shareComponents";
 import ShareTabBar from "./ShareTabBar";
 
@@ -25,7 +25,11 @@ export default function ShareScreen({ navigation }) {
   const { theme } = useTheme();
   const { t } = useLang();
   const insets = useSafeAreaInsets();
+
+  const styles = useMemo(() => makeShareStyles(theme), [theme]);
   const PRIMARY = theme?.accent ?? "#4A7AB5";
+  const MUTED = theme?.textMuted ?? "#94A3B8";
+  const ARC_BG = theme?.surfaceAlt ?? "#e8eef5";
 
   const [code, setCode] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(TOTAL_SECONDS);
@@ -84,7 +88,12 @@ export default function ShareScreen({ navigation }) {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: theme.bgSecondary ?? "#F0F4F8" }]}>
+    <View
+      style={[
+        styles.root,
+        { backgroundColor: theme?.surfaceAlt ?? theme?.bg ?? "#F0F4F8" },
+      ]}
+    >
       <View style={[styles.header, { paddingTop: insets.top + 8, backgroundColor: PRIMARY }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
           <Text style={styles.headerBack}>‹</Text>
@@ -103,7 +112,7 @@ export default function ShareScreen({ navigation }) {
             <ActivityIndicator color={PRIMARY} size="large" />
           ) : (
             <>
-              <Text style={[styles.codeText, { color: expired ? "#ccc" : PRIMARY }]}>
+              <Text style={[styles.codeText, { color: expired ? MUTED : PRIMARY }]}>
                 {code ? code.split("").join(" ") : "— — — — — —"}
               </Text>
               <View style={styles.brandRow}>
@@ -136,9 +145,9 @@ export default function ShareScreen({ navigation }) {
               setIncludeNotes(val);
               generateCode(val);
             }}
-            trackColor={{ false: "#D1D5DB", true: PRIMARY }}
+            trackColor={{ false: theme?.border ?? "#D1D5DB", true: PRIMARY }}
             thumbColor="#fff"
-            ios_backgroundColor="#D1D5DB"
+            ios_backgroundColor={theme?.border ?? "#D1D5DB"}
           />
           <Text style={[styles.toggleLabel, { color: PRIMARY }]}>
             {t.sharePersonalNotes ?? "Include personal notes"}
@@ -148,16 +157,20 @@ export default function ShareScreen({ navigation }) {
         <View style={styles.timerCard}>
           <View style={styles.timerHeader}>
             <Svg width="18" height="18" viewBox="0 0 24 24">
-              <Circle cx="12" cy="12" r="9" fill="none" stroke={expired ? "#ccc" : PRIMARY} strokeWidth="1.5" />
-              <Path d="M12 7 L12 12 L15 14" stroke={expired ? "#ccc" : PRIMARY} strokeWidth="1.5" strokeLinecap="round" />
+              <Circle cx="12" cy="12" r="9" fill="none" stroke={expired ? MUTED : PRIMARY} strokeWidth="1.5" />
+              <Path d="M12 7 L12 12 L15 14" stroke={expired ? MUTED : PRIMARY} strokeWidth="1.5" strokeLinecap="round" />
             </Svg>
-            <Text style={[styles.timerLabel, { color: expired ? "#ccc" : PRIMARY }]}>
+            <Text style={[styles.timerLabel, { color: expired ? MUTED : PRIMARY }]}>
               {expired
                 ? (t.codeExpired ?? "Code has expired")
                 : (t.codeValidFor ?? "Valid for 10 minutes")}
             </Text>
           </View>
-          <ArcTimer secondsLeft={secondsLeft} color={expired ? "#D1D5DB" : PRIMARY} />
+          <ArcTimer
+            secondsLeft={secondsLeft}
+            color={expired ? MUTED : PRIMARY}
+            bgColor={ARC_BG}
+          />
           <View style={styles.divider} />
           <TouchableOpacity onPress={() => generateCode()} disabled={loading} style={styles.generateBtn}>
             {loading ? (

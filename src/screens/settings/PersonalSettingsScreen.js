@@ -4,6 +4,7 @@
 // Currently exposes:
 //   - Daily reminder toggle  (local push via expo-notifications)
 //   - Time picker            (when reminders are on)
+//   - Theme picker           (Light / Dark / System)
 //
 // Mirrors the Recover app's PersonalSettingsScreen pattern.
 
@@ -19,6 +20,7 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 import { useTheme } from "../../context/ThemeContext";
@@ -71,11 +73,82 @@ function ToggleRow({ label, subtitle, value, onValueChange, theme, last, extra }
   );
 }
 
+// ─────────────────────────────────────────────── ThemeRow
+
+function ThemeRow({ mode, setMode, theme, t, last }) {
+  const OPTIONS = [
+    { key: "light",  icon: "sunny-outline", label: t.themeLight  ?? "Light"  },
+    { key: "dark",   icon: "moon-outline",  label: t.themeDark   ?? "Dark"   },
+    { key: "system", icon: "phone-portrait-outline", label: t.themeSystem ?? "System" },
+  ];
+
+  return (
+    <View
+      style={[
+        styles.themeRow,
+        {
+          borderBottomColor: theme.border,
+          borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth,
+        },
+      ]}
+    >
+      <View style={{ marginBottom: 10 }}>
+        <Text style={[styles.rowLabel, { color: theme.text }]}>
+          {t.theme ?? "Theme"}
+        </Text>
+        <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>
+          {t.themeSubtitle ?? "Choose how Coachly looks"}
+        </Text>
+      </View>
+
+      <View style={[styles.segWrap, { backgroundColor: theme.bgSecondary ?? theme.border + "33" }]}>
+        {OPTIONS.map((opt) => {
+          const active = mode === opt.key;
+          return (
+            <TouchableOpacity
+              key={opt.key}
+              activeOpacity={0.8}
+              onPress={() => setMode(opt.key)}
+              style={[
+                styles.segBtn,
+                active && {
+                  backgroundColor: theme.bg ?? "#fff",
+                  shadowColor: "#000",
+                  shadowOpacity: 0.08,
+                  shadowRadius: 2,
+                  shadowOffset: { width: 0, height: 1 },
+                  elevation: 2,
+                },
+              ]}
+            >
+              <Ionicons
+                name={opt.icon}
+                size={16}
+                color={active ? theme.accent : theme.textSecondary}
+                style={{ marginRight: 6 }}
+              />
+              <Text
+                style={[
+                  styles.segLabel,
+                  { color: active ? theme.accent : theme.textSecondary },
+                  active && { fontWeight: "700" },
+                ]}
+              >
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 // ─────────────────────────────────────────────── Screen
 
 export default function PersonalSettingsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
-  const { theme } = useTheme();
+  const { theme, mode, setMode } = useTheme();
   const { t } = useLang();
 
   const [reminderEnabled, setReminderEnabled] = useState(false);
@@ -104,8 +177,8 @@ export default function PersonalSettingsScreen({ navigation }) {
         await enableReminder(
           reminderTime.getHours(),
           reminderTime.getMinutes(),
-          t.settings?.notifTitle ?? "Coachly",
-          t.settings?.notifBody ?? "Time to check in with your training 💪",
+          t.notifTitle ?? "Coachly",
+          t.notifBody ?? "Time to check in with your training 💪",
         );
       } else {
         await disableReminder();
@@ -113,9 +186,9 @@ export default function PersonalSettingsScreen({ navigation }) {
     } catch (e) {
       // Permission denied or scheduling failed — revert the toggle
       Alert.alert(
-        t.common?.error ?? "Error",
+        t.error ?? "Error",
         e?.message === "Notification permission denied"
-          ? (t.settings?.notifPermissionDenied ??
+          ? (t.notifPermissionDenied ??
             "Please enable notifications for Coachly in your device settings.")
           : (e?.message ?? "Could not set reminder."),
       );
@@ -135,12 +208,12 @@ export default function PersonalSettingsScreen({ navigation }) {
         await enableReminder(
           selectedDate.getHours(),
           selectedDate.getMinutes(),
-          t.settings?.notifTitle ?? "Coachly",
-          t.settings?.notifBody ?? "Time to check in with your training 💪",
+          t.notifTitle ?? "Coachly",
+          t.notifBody ?? "Time to check in with your training 💪",
         );
       } catch (e) {
         Alert.alert(
-          t.common?.error ?? "Error",
+          t.error ?? "Error",
           e?.message ?? "Could not update reminder.",
         );
       }
@@ -160,7 +233,7 @@ export default function PersonalSettingsScreen({ navigation }) {
           <Text style={styles.headerBack}>‹</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
-          {t.settings?.personal ?? t.personalSettings ?? "Personal settings"}
+          {t.personalSettings ?? t.personal ?? "Personal settings"}
         </Text>
         <View style={styles.headerBtn} />
       </View>
@@ -169,18 +242,19 @@ export default function PersonalSettingsScreen({ navigation }) {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + Spacing.xl }}
       >
+        {/* ─── Notifications section ─── */}
         <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>
-          {(t.settings?.personal ?? "Personal settings").toUpperCase()}
+          {(t.notifications ?? "Notifications").toUpperCase()}
         </Text>
 
         <View style={[styles.section, { backgroundColor: theme.card ?? theme.bg ?? "#fff" }]}>
           <ToggleRow
             theme={theme}
-            label={t.settings?.notifications ?? "Notifications"}
+            label={t.notifications ?? "Notifications"}
             subtitle={
               reminderEnabled
-                ? `${t.settings?.reminder ?? "Daily reminder"} — ${formatTime(reminderTime)}`
-                : (t.settings?.notifSubtitleOff ??
+                ? `${t.reminder ?? "Daily reminder"} — ${formatTime(reminderTime)}`
+                : (t.notifSubtitleOff ??
                   "Get a daily reminder to log your training")
             }
             value={reminderEnabled}
@@ -198,7 +272,7 @@ export default function PersonalSettingsScreen({ navigation }) {
             >
               <View style={{ flex: 1 }}>
                 <Text style={[styles.rowLabel, { color: theme.text }]}>
-                  {t.settings?.reminderTime ?? "Reminder time"}
+                  {t.reminderTime ?? "Reminder time"}
                 </Text>
               </View>
               <Text style={[styles.rowValue, { color: theme.accent }]}>
@@ -206,6 +280,21 @@ export default function PersonalSettingsScreen({ navigation }) {
               </Text>
             </TouchableOpacity>
           ) : null}
+        </View>
+
+        {/* ─── Appearance section ─── */}
+        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>
+          {(t.appearance ?? t.theme ?? "Appearance").toUpperCase()}
+        </Text>
+
+        <View style={[styles.section, { backgroundColor: theme.card ?? theme.bg ?? "#fff" }]}>
+          <ThemeRow
+            mode={mode}
+            setMode={setMode}
+            theme={theme}
+            t={t}
+            last
+          />
         </View>
 
         {/* iOS shows the picker inline on demand; Android shows a system dialog */}
@@ -226,7 +315,7 @@ export default function PersonalSettingsScreen({ navigation }) {
             onPress={() => setShowTimePicker(false)}
           >
             <Text style={styles.doneBtnText}>
-              {t.common?.done ?? "Done"}
+              {t.done ?? "Done"}
             </Text>
           </TouchableOpacity>
         ) : null}
@@ -238,7 +327,7 @@ export default function PersonalSettingsScreen({ navigation }) {
 // ─────────────────────────────────────────────── styles
 
 const styles = StyleSheet.create({
-  // Header — same pattern as LanguageScreen
+  // Header
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -289,6 +378,30 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: "600",
   },
+
+  // Theme picker (segmented control)
+  themeRow: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  segWrap: {
+    flexDirection: "row",
+    borderRadius: 10,
+    padding: 3,
+  },
+  segBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  segLabel: {
+    fontSize: FontSize.sm,
+    fontWeight: "600",
+  },
+
   doneBtn: {
     marginHorizontal: Spacing.md,
     marginTop: Spacing.sm,

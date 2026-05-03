@@ -306,7 +306,7 @@ export default function ProfileScreen({ navigation, route }) {
       </View>
 
       <ScrollView
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: theme.surfaceAlt ?? theme.bg ?? "#F0F4F8" }}
         contentContainerStyle={{ paddingBottom: 50 }}
         showsVerticalScrollIndicator={false}
       >
@@ -380,7 +380,7 @@ export default function ProfileScreen({ navigation, route }) {
             />
           </View>
           <View style={s.fieldLine} />
-
+              { /* }
           <View style={s.fieldWrap}>
             <Text style={s.fieldLabel}>{t.weightKg ?? "Weight (kg)"}</Text>
             <TextInput
@@ -397,6 +397,7 @@ export default function ProfileScreen({ navigation, route }) {
               selectionColor={theme.accent}
             />
           </View>
+          */ }
           <View style={s.fieldLine} />
 
           <TouchableOpacity
@@ -479,7 +480,9 @@ export default function ProfileScreen({ navigation, route }) {
 
 const makeStyles = (t, insets) =>
   StyleSheet.create({
-    root: { flex: 1, backgroundColor: t.bgSecondary ?? "#F0F4F8" },
+    // Outer wrapper — uses surfaceAlt so any area below the ScrollView
+    // (or behind dividers) shows a theme-correct neutral, not hardcoded grey.
+    root: { flex: 1, backgroundColor: t.surfaceAlt ?? t.bg ?? "#F0F4F8" },
     header: {
       flexDirection: "row",
       alignItems: "center",
@@ -497,11 +500,14 @@ const makeStyles = (t, insets) =>
       fontWeight: "600",
       textAlign: "center",
     },
+    // Gap between sections — same color as the root so it visually separates
+    // section cards without introducing a contrasting band.
     divider: {
       height: Spacing.md,
-      backgroundColor: t.bgSecondary ?? "#F0F4F8",
+      backgroundColor: t.surfaceAlt ?? t.bg ?? "#F0F4F8",
     },
-    section: { backgroundColor: t.bg ?? "#fff" },
+    // Section card surface — uses theme.surface for proper light/dark.
+    section: { backgroundColor: t.surface ?? t.bg ?? "#fff" },
     sectionTitle: {
       color: t.text,
       fontSize: FontSize.md,
