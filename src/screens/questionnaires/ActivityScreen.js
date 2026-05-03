@@ -12,6 +12,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -84,10 +85,7 @@ export default function ActivityScreen({ navigation }) {
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState(null);
 
-  const [loading, setLoading] = useState(true);
-
-  // [prefill] mounted-fetch added
-  // Fetch the latest submission once on mount and prefill the answers.
+  // Prefill the answers from the latest submission on mount
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -100,13 +98,10 @@ export default function ActivityScreen({ navigation }) {
         }
       } catch (e) {
         console.warn("[ipaq] prefill fetch failed:", e?.message ?? e);
-      } finally {
-        if (alive) setLoading(false);
       }
     })();
     return () => { alive = false; };
   }, []);
-
 
   const s = makeStyles(theme);
 
@@ -185,10 +180,16 @@ export default function ActivityScreen({ navigation }) {
 
           <View style={{ height: Spacing.xl }} />
 
-          <TouchableOpacity style={[s.primaryBtn, { backgroundColor: theme.accent }]} onPress={goBack}>
+          <TouchableOpacity
+            style={[s.primaryBtn, { backgroundColor: theme.accent, alignSelf: "stretch" }]}
+            onPress={goBack}
+          >
             <Text style={s.primaryBtnText}>{t.done ?? "Done"}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.secondaryBtn} onPress={reset}>
+          <TouchableOpacity
+            style={[s.secondaryBtn, { alignSelf: "stretch" }]}
+            onPress={reset}
+          >
             <Text style={[s.secondaryBtnText, { color: theme.accent }]}>
               {t.retake ?? "Retake"}
             </Text>
@@ -231,6 +232,12 @@ export default function ActivityScreen({ navigation }) {
       />
 
       <ScrollView ref={scrollRef} contentContainerStyle={{ padding: Spacing.lg, paddingBottom: 40 }}>
+        <Image
+          source={require("../../../assets/images/questionary3.png")}
+          style={s.heroImage}
+          resizeMode="contain"
+        />
+
         <Text style={s.intro}>
           {t.ipaq_intro ?? "Reflect on your activity over the past 7 days."}
         </Text>
@@ -316,6 +323,11 @@ const ss = StyleSheet.create({
 function makeStyles(theme) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: theme.bg ?? "#F0F4F8" },
+    heroImage: {
+      width: "100%",
+      height: 180,
+      marginBottom: Spacing.lg,
+    },
     intro: {
       fontSize: FontSize.sm,
       color: theme.textSecondary ?? "#475569",
@@ -386,7 +398,7 @@ function makeStyles(theme) {
       justifyContent: "center",
       alignItems: "center",
       marginBottom: Spacing.lg,
-      alignSelf: "center"
+      alignSelf: "center",
     },
     resultTitle: {
       fontSize: FontSize.xl,
@@ -394,14 +406,14 @@ function makeStyles(theme) {
       color: theme.text ?? "#0f172a",
       textAlign: "center",
       marginBottom: Spacing.lg,
-      alignSelf: "center"
+      alignSelf: "center",
     },
     scoresRow: {
       flexDirection: "row",
       justifyContent: "center",
       gap: Spacing.md,
       marginBottom: Spacing.md,
-      alignSelf: "center"
+      alignSelf: "center",
     },
     scoreCard: {
       borderWidth: 2,

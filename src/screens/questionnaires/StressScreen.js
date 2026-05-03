@@ -14,10 +14,7 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
@@ -39,23 +36,21 @@ function computeScore(answers) {
   for (const q of QUESTIONS) {
     const raw = Number(answers[q]);
     if (Number.isNaN(raw)) return null;
-    total += REVERSE_ITEMS.has(q) ? 4 - raw : raw;
+    total += REVERSE_ITEMS.has(q) ? (4 - raw) : raw;
   }
   let key;
-  if (total <= 13) key = "pss10_resultLow";
+  if (total <= 13)      key = "pss10_resultLow";
   else if (total <= 26) key = "pss10_resultModerate";
-  else key = "pss10_resultHigh";
+  else                  key = "pss10_resultHigh";
   return { score: total, max: 40, key };
 }
 
 function getResultColor(key) {
-  return (
-    {
-      pss10_resultLow: "#3EC78C",
-      pss10_resultModerate: "#F5820A",
-      pss10_resultHigh: "#E84F6A",
-    }[key] || "#4A7AB5"
-  );
+  return {
+    pss10_resultLow:      "#3EC78C",
+    pss10_resultModerate: "#F5820A",
+    pss10_resultHigh:     "#E84F6A",
+  }[key] || "#4A7AB5";
 }
 
 function GradientHeader({ title, onBack, insets, theme }) {
@@ -85,10 +80,7 @@ export default function StressScreen({ navigation }) {
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState(null);
 
-  const [loading, setLoading] = useState(true);
-
-  // [prefill] mounted-fetch added
-  // Fetch the latest submission once on mount and prefill the answers.
+  // Prefill the answers from the latest submission on mount
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -101,13 +93,9 @@ export default function StressScreen({ navigation }) {
         }
       } catch (e) {
         console.warn("[pss10] prefill fetch failed:", e?.message ?? e);
-      } finally {
-        if (alive) setLoading(false);
       }
     })();
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, []);
 
   const s = makeStyles(theme);
@@ -118,19 +106,13 @@ export default function StressScreen({ navigation }) {
   const allAnswered = QUESTIONS.every((q) => answers[q] !== undefined);
   const answeredCount = Object.keys(answers).length;
   const goBack = () =>
-    navigation.canGoBack()
-      ? navigation.goBack()
-      : navigation.navigate("QuestionnaireHub");
+    navigation.canGoBack() ? navigation.goBack() : navigation.navigate("QuestionnaireHub");
 
   const submit = async () => {
     if (!allAnswered || saving) return;
     setSaving(true);
     try {
       const score = computeScore(answers);
-      console.log(
-        "[PSS-10] submitting:",
-        JSON.stringify({ type: "pss10", answers, scores: score }),
-      ); // ← ADD
       let saved = null;
       try {
         saved = await questionnairesApi.submit({
@@ -138,7 +120,6 @@ export default function StressScreen({ navigation }) {
           answers,
           scores: score,
         });
-        console.log("[PSS-10] backend returned:", JSON.stringify(saved)); // ← ADD
       } catch (e) {
         console.warn("[PSS-10] save failed:", e?.message ?? e);
       }
@@ -170,12 +151,7 @@ export default function StressScreen({ navigation }) {
           theme={theme}
         />
         <ScrollView ref={scrollRef} contentContainerStyle={s.resultContainer}>
-          <View
-            style={[
-              s.resultBadge,
-              { borderColor: color, backgroundColor: color + "18" },
-            ]}
-          >
+          <View style={[s.resultBadge, { borderColor: color, backgroundColor: color + "18" }]}>
             <Ionicons name="pulse" size={52} color={color} />
           </View>
           <Text style={s.resultTitle}>{resultLabel}</Text>
@@ -192,12 +168,15 @@ export default function StressScreen({ navigation }) {
           <View style={{ height: Spacing.xl }} />
 
           <TouchableOpacity
-            style={[s.primaryBtn, { backgroundColor: theme.accent }]}
+            style={[s.primaryBtn, { backgroundColor: theme.accent, alignSelf: "stretch" }]}
             onPress={goBack}
           >
             <Text style={s.primaryBtnText}>{t.done ?? "Done"}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.secondaryBtn} onPress={reset}>
+          <TouchableOpacity
+            style={[s.secondaryBtn, { alignSelf: "stretch" }]}
+            onPress={reset}
+          >
             <Text style={[s.secondaryBtnText, { color: theme.accent }]}>
               {t.retake ?? "Retake"}
             </Text>
@@ -222,18 +201,18 @@ export default function StressScreen({ navigation }) {
         <View
           style={[
             s.progressFill,
-            {
-              width: `${(answeredCount / QUESTIONS.length) * 100}%`,
-              backgroundColor: theme.accent,
-            },
+            { width: `${(answeredCount / QUESTIONS.length) * 100}%`, backgroundColor: theme.accent },
           ]}
         />
       </View>
 
-      <ScrollView
-        ref={scrollRef}
-        contentContainerStyle={{ padding: Spacing.lg, paddingBottom: 40 }}
-      >
+      <ScrollView ref={scrollRef} contentContainerStyle={{ padding: Spacing.lg, paddingBottom: 40 }}>
+        <Image
+          source={require("../../../assets/images/questionary4.png")}
+          style={s.heroImage}
+          resizeMode="contain"
+        />
+
         <Text style={s.intro}>
           {t.pss10_intro ?? "Reflect on your past month."}
         </Text>
@@ -256,9 +235,7 @@ export default function StressScreen({ navigation }) {
                         s.optBtn,
                         {
                           borderColor: isActive ? theme.accent : theme.border,
-                          backgroundColor: isActive
-                            ? theme.accent + "18"
-                            : "transparent",
+                          backgroundColor: isActive ? theme.accent + "18" : "transparent",
                         },
                       ]}
                       onPress={() => setAnswer(q, opt)}
@@ -266,11 +243,7 @@ export default function StressScreen({ navigation }) {
                       <Text
                         style={[
                           s.optText,
-                          {
-                            color: isActive
-                              ? theme.accent
-                              : theme.textSecondary,
-                          },
+                          { color: isActive ? theme.accent : theme.textSecondary },
                         ]}
                       >
                         {optLabel}
@@ -314,13 +287,7 @@ const ss = StyleSheet.create({
   },
   headerBtn: { width: 40 },
   headerBack: { color: "#fff", fontSize: 28, lineHeight: 34 },
-  headerTitle: {
-    color: "#fff",
-    fontSize: FontSize.lg,
-    fontWeight: "700",
-    flex: 1,
-    textAlign: "center",
-  },
+  headerTitle: { color: "#fff", fontSize: FontSize.lg, fontWeight: "700", flex: 1, textAlign: "center" },
 });
 
 function makeStyles(theme) {
@@ -335,6 +302,11 @@ function makeStyles(theme) {
     },
     progressFill: {
       height: 4,
+    },
+    heroImage: {
+      width: "100%",
+      height: 180,
+      marginBottom: Spacing.lg,
     },
     intro: {
       fontSize: FontSize.sm,
@@ -376,7 +348,6 @@ function makeStyles(theme) {
       fontWeight: "600",
     },
     primaryBtn: {
-      width: "100%",  
       height: 50,
       borderRadius: Radius.md ?? 12,
       justifyContent: "center",
@@ -401,7 +372,7 @@ function makeStyles(theme) {
     resultContainer: {
       padding: Spacing.lg,
       paddingTop: Spacing.xl,
-      alignItems: "center", // ← change to "stretch"
+      alignItems: "stretch",
     },
     resultBadge: {
       width: 120,
@@ -411,7 +382,7 @@ function makeStyles(theme) {
       justifyContent: "center",
       alignItems: "center",
       marginBottom: Spacing.lg,
-      alignSelf: "center", // ← add
+      alignSelf: "center",
     },
     resultTitle: {
       fontSize: FontSize.xl,
@@ -419,14 +390,14 @@ function makeStyles(theme) {
       color: theme.text ?? "#0f172a",
       textAlign: "center",
       marginBottom: Spacing.lg,
-      alignSelf: "center", // ← add
+      alignSelf: "center",
     },
     scoresRow: {
       flexDirection: "row",
       justifyContent: "center",
       gap: Spacing.md,
       marginBottom: Spacing.md,
-      alignSelf: "center", // ← add
+      alignSelf: "center",
     },
     scoreCard: {
       borderWidth: 2,

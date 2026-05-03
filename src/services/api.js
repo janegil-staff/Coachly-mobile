@@ -4,7 +4,7 @@
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5050";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://goldfish-app-8zz97.ondigitalocean.app";
 
 const TOKEN_KEY = "accessToken";
 const REFRESH_KEY = "refreshToken";

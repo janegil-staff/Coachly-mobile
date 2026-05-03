@@ -3,7 +3,10 @@
     "name": "Coachly",
     "slug": "coachly",
     "extra": {
-      "apiUrl": "http://192.168.1.42:5050"
+      "apiUrl": "https://goldfish-app-8zz97.ondigitalocean.app",
+      "eas": {
+        "projectId": "c3877710-f135-4fb0-aabc-51f44215ac7f"
+      }
     },
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,9 +19,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.qup.coachly",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.qup.coachly",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/coachly-logo.png",
         "backgroundColor": "#ffffff"
@@ -28,6 +37,9 @@
     "web": {
       "favicon": "./assets/favicon.ico"
     },
-    "plugins": ["expo-localization", "expo-secure-store"]
+    "plugins": [
+      "expo-localization",
+      "expo-secure-store"
+    ]
   }
 }

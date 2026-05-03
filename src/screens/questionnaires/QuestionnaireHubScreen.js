@@ -203,16 +203,8 @@ export default function QuestionnaireHubScreen({ navigation }) {
             onPress={() => navigation.navigate("Restq")}
             icon="clipboard-outline"
           />
-          */}
-          <Card
-            titleKey="goalsTitle"
-            subtitleKey="goalsSubtitle"
-            descKey="goalsDesc"
-            startKey="goalsStart"
-            lastDoc={latestGoals}
-            onPress={() => navigation.navigate("Goals")}
-            icon="flag-outline"
-          />
+          
+
           <Card
             titleKey="pss10_title"
             subtitleKey="pss10_subtitle"
@@ -241,6 +233,16 @@ export default function QuestionnaireHubScreen({ navigation }) {
             lastDoc={latestActivity}
             onPress={() => navigation.navigate("Activity")}
             icon="walk-outline"
+          />
+*/}
+          <Card
+            titleKey="goalsTitle"
+            subtitleKey="goalsSubtitle"
+            descKey="goalsDesc"
+            startKey="goalsStart"
+            lastDoc={latestGoals}
+            onPress={() => navigation.navigate("Goals")}
+            icon="flag-outline"
           />
         </ScrollView>
       )}
