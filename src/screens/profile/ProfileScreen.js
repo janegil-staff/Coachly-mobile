@@ -441,6 +441,12 @@ export default function ProfileScreen({ navigation, route }) {
         {/* Settings rows */}
         <View style={s.section}>
           <Row
+            label={t.personalSettings}
+            value={t.change}
+            onPress={() => navigation.navigate("PersonalSettings")}
+            theme={theme}
+          />
+          <Row
             label={t.changePin ?? "Change PIN"}
             value={t.change ?? "Change"}
             onPress={handleChangePin}
