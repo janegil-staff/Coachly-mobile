@@ -2,6 +2,13 @@
 // Coachly fitness diary — Calendar + Diary tabs with score-colored cells.
 // Theme-aware: uses theme.surface / theme.surfaceAlt / theme.text / theme.textMuted
 // throughout instead of hardcoded white/grey/navy.
+//
+// Fix vs previous version:
+//   - Calendar grid no longer uses `width: '14.28%'` + flexWrap, which on Android
+//     rounded each cell down and caused the 7th column (Sunday) to wrap onto its
+//     own row. The grid now renders one explicit <View> per week, with 7 children
+//     each using `flex: 1`. Math is integer-clean on every device, weekday header
+//     and body always align.
 
 import React, { useState, useCallback } from "react";
 import {
@@ -74,6 +81,15 @@ function toDateStr(y, m, d) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
+// Chunk a flat array of 35–42 cells into weeks of exactly 7
+function chunkIntoWeeks(cells) {
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) {
+    weeks.push(cells.slice(i, i + 7));
+  }
+  return weeks;
+}
+
 function buildWorkoutRows(log) {
   if (!log) return [];
   const fromCategoryDurations = Array.isArray(log.categoryDurations)
@@ -122,7 +138,6 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
   const [month, setMonth] = useState(now.getMonth());
 
   const PRIMARY = theme.accent;
-  // Use theme tokens instead of hardcoded NAVY/MUTED
   const HEADING = theme.text;
   const MUTED = theme.textMuted;
 
@@ -143,9 +158,16 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
 
   const totalDays = daysInMonth(year, month);
   const startOffset = firstWeekday(year, month);
+
+  // Build cells: leading blanks for offset, then days 1..N, then trailing
+  // blanks so total length is a multiple of 7. Trailing blanks make every
+  // week row have exactly 7 children, which keeps `flex: 1` math clean.
   const cells = [];
   for (let i = 0; i < startOffset; i++) cells.push(null);
   for (let d = 1; d <= totalDays; d++) cells.push(d);
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const weeks = chunkIntoWeeks(cells);
 
   const monthLogs = logs.filter((l) => {
     if (!l?.date) return false;
@@ -213,86 +235,93 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
             </Text>
           ))}
         </View>
+
         {loading ? (
           <ActivityIndicator color={PRIMARY} style={{ marginVertical: 24 }} />
         ) : (
-          <View style={cal.grid}>
-            {cells.map((day, i) => {
-              if (!day) return <View key={`e-${i}`} style={cal.cell} />;
-              const dateStr = toDateStr(year, month, day);
-              const log = logs.find((l) => l.date === dateStr) ?? null;
-              const bucket = bucketScore(scoresByDate[dateStr]);
-              const isToday = dateStr === today;
-              const isFuture = dateStr > today;
-              const bg = bucket != null ? scoreColor(bucket) : undefined;
-              const highSoreness = log?.soreness >= 4;
-              const isRest = log?.isRestDay === true;
-              const hasNote = !!log?.note?.trim();
-              const highEffort = log?.effort > 4;
-              return (
-                <TouchableOpacity
-                  key={dateStr}
-                  style={cal.cell}
-                  activeOpacity={isFuture ? 1 : 0.7}
-                  onPress={() =>
-                    !isFuture && navigation.navigate("Log", { date: dateStr })
+          <View>
+            {weeks.map((week, wi) => (
+              <View key={`w-${wi}`} style={cal.weekRow}>
+                {week.map((day, di) => {
+                  if (!day) {
+                    return <View key={`e-${wi}-${di}`} style={cal.cell} />;
                   }
-                >
-                  <View
-                    style={[
-                      cal.cellInner,
-                      { borderColor: theme.borderStrong ?? "#2d4a6e" },
-                      isFuture && { borderWidth: 0 },
-                      !isFuture &&
-                        bucket == null && {
-                          borderColor: dayInactiveBorder,
-                          borderWidth: 2,
-                        },
-                      bg && { backgroundColor: bg, borderColor: bg },
-                      isToday &&
-                        bucket == null && {
-                          borderColor: PRIMARY,
-                          borderWidth: 2,
-                        },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        cal.cellText,
-                        { color: bucket != null ? "#fff" : HEADING },
-                        isToday &&
-                          bucket == null && {
-                            color: PRIMARY,
-                            fontWeight: "800",
-                          },
-                      ]}
+                  const dateStr = toDateStr(year, month, day);
+                  const log = logs.find((l) => l.date === dateStr) ?? null;
+                  const bucket = bucketScore(scoresByDate[dateStr]);
+                  const isToday = dateStr === today;
+                  const isFuture = dateStr > today;
+                  const bg = bucket != null ? scoreColor(bucket) : undefined;
+                  const highSoreness = log?.soreness >= 4;
+                  const isRest = log?.isRestDay === true;
+                  const hasNote = !!log?.note?.trim();
+                  const highEffort = log?.effort > 4;
+                  return (
+                    <TouchableOpacity
+                      key={dateStr}
+                      style={cal.cell}
+                      activeOpacity={isFuture ? 1 : 0.7}
+                      onPress={() =>
+                        !isFuture && navigation.navigate("Log", { date: dateStr })
+                      }
                     >
-                      {day}
-                    </Text>
-                    {isRest && (
-                      <View style={[cal.restIcon, { backgroundColor: PRIMARY }]}>
-                        <Ionicons name="bed" size={12} color="#fff" />
+                      <View
+                        style={[
+                          cal.cellInner,
+                          { borderColor: theme.borderStrong ?? "#2d4a6e" },
+                          isFuture && { borderWidth: 0 },
+                          !isFuture &&
+                            bucket == null && {
+                              borderColor: dayInactiveBorder,
+                              borderWidth: 2,
+                            },
+                          bg && { backgroundColor: bg, borderColor: bg },
+                          isToday &&
+                            bucket == null && {
+                              borderColor: PRIMARY,
+                              borderWidth: 2,
+                            },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            cal.cellText,
+                            { color: bucket != null ? "#fff" : HEADING },
+                            isToday &&
+                              bucket == null && {
+                                color: PRIMARY,
+                                fontWeight: "800",
+                              },
+                          ]}
+                        >
+                          {day}
+                        </Text>
+                        {isRest && (
+                          <View style={[cal.restIcon, { backgroundColor: PRIMARY }]}>
+                            <Ionicons name="bed" size={12} color="#fff" />
+                          </View>
+                        )}
+                        {!isRest && highEffort && (
+                          <View style={cal.effortIcon}>
+                            <Ionicons name="flash" size={11} color="#fff" />
+                          </View>
+                        )}
+                        {highSoreness && <Text style={cal.soreIcon}>🔥</Text>}
+                        {hasNote && (
+                          <View style={[cal.noteIcon, { backgroundColor: PRIMARY }]}>
+                            <Ionicons
+                              name="chatbubble-ellipses"
+                              size={10}
+                              color="#fff"
+                            />
+                          </View>
+                        )}
                       </View>
-                    )}
-                    {!isRest && highEffort && (
-                      <View style={cal.effortIcon}>
-                        <Ionicons name="flash" size={11} color="#fff" />
-                      </View>
-                    )}
-                    {highSoreness && <Text style={cal.soreIcon}>🔥</Text>}
-                    {hasNote && (
-                      <View style={[cal.noteIcon, { backgroundColor: PRIMARY }]}>
-                        <Ionicons
-                          name="chatbubble-ellipses"
-                          size={10}
-                          color="#fff"
-                        />
-                      </View>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))}
           </View>
         )}
       </View>
@@ -413,13 +442,21 @@ const cal = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
   },
-  grid: { flexDirection: "row", flexWrap: "wrap" },
+
+  // ── FIX: explicit week rows, flex:1 cells ──────────────────────────────
+  // Previously: { flexDirection:"row", flexWrap:"wrap" } + width:"14.28%".
+  // Android rounded each cell down, Sunday wrapped to its own row, dates
+  // shifted. Now we render one weekRow per week and let flex:1 divide
+  // space evenly — math is integer-clean on every device.
+  weekRow: { flexDirection: "row" },
   cell: {
-    width: `${100 / 7}%`,
+    flex: 1,
     aspectRatio: 1,
     paddingHorizontal: 7,
     paddingVertical: 5,
+    minWidth: 0, // allow flex children to shrink below intrinsic content width
   },
+
   cellInner: {
     flex: 1,
     width: "100%",
