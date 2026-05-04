@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
     authApi
       .getMe()
       .then((u) => {
-        if (authedManually.current) return; // user just registered/logged in
+        if (authedManually.current) return;
         setUser(u ?? null);
       })
       .catch(() => {
@@ -86,13 +86,40 @@ export function AuthProvider({ children }) {
     await SecureStore.setItemAsync("userEmail", cleanEmail);
     await SecureStore.setItemAsync("userPin", password);
 
-    // Mark that we've authed manually so the in-flight getMe() doesn't reset us.
     authedManually.current = true;
     setIsNewUser(true);
     setPinVerified(true);
     setUser(u);
-    setLoading(false); // in case register completed before initial getMe()
+    setLoading(false);
     return u;
+  };
+
+  /**
+   * Called by ResetPinScreen after the backend has returned a fresh session.
+   *
+   * The reset endpoint already issued tokens and (via authApi.resetPin) the
+   * api layer should have stored them — same way `authApi.login` does. All
+   * we need to do here is mirror what `login` does for state:
+   *   - persist the new PIN + email to SecureStore
+   *   - flip pinVerified / authedManually
+   *   - set the user object
+   *
+   * Takes the email + new pin so SecureStore stays consistent with what the
+   * user just chose, and the resolved `user` object from the API response.
+   */
+  const loginAfterReset = async ({ email, pin, user: resetUser }) => {
+    const cleanEmail = (email ?? "").trim().toLowerCase();
+    if (!cleanEmail || !pin || !resetUser) {
+      throw new Error("loginAfterReset: missing email, pin, or user");
+    }
+    await SecureStore.setItemAsync("userPin", pin);
+    await SecureStore.setItemAsync("userEmail", cleanEmail);
+    authedManually.current = true;
+    setPinVerified(true);
+    setIsNewUser(false);
+    setUser(resetUser);
+    setLoading(false);
+    return resetUser;
   };
 
   const savePin = async (pin) => {
@@ -135,6 +162,7 @@ export function AuthProvider({ children }) {
         updateUser,
         login,
         register,
+        loginAfterReset,
         logout,
         logoutAndClearPin,
         savePin,

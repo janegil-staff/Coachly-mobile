@@ -1,5 +1,5 @@
-// src/screens/auth/LoginScreen.js
-// Login with email + 4-digit PIN. Recover-style Hodepinedagboken layout.
+// src/screensses/auth/LoginScreen.js
+// Login with email + 4-digit PIN. Coachly branding (Qup DA), Forgot PIN flow.
 
 import React, { useState } from "react";
 import {
@@ -22,7 +22,7 @@ import { useLang } from "../../context/LangContext";
 
 const APP_VERSION = "1.0.0";
 const COMPANY = "Qup DA";
-const EMAIL = "post@kbbmedic.no";
+const EMAIL = "jan.egil.stafff@qupda.com"; // ← was post@kbbmedic.no (wrong company)
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
@@ -52,9 +52,7 @@ export default function LoginScreen({ navigation }) {
       await login(email.trim().toLowerCase(), pin);
     } catch (e) {
       const msg =
-        e?.response?.data?.message ||
-        e?.message ||
-        t.invalidCredentials;
+        e?.response?.data?.message || e?.message || t.invalidCredentials;
       setError(msg);
     } finally {
       setLoading(false);
@@ -131,7 +129,17 @@ export default function LoginScreen({ navigation }) {
             )}
           </TouchableOpacity>
 
-          {/* Links */}
+          {/* Forgot PIN — sits under the submit button, before sign-up link */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate("ForgotPin", { email })}
+            style={s.forgotRow}
+          >
+            <Text style={s.forgotLink}>
+              {t.forgotPin ?? "Forgot your PIN?"}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Sign-up link */}
           <TouchableOpacity
             onPress={() => navigation.navigate("Register")}
             style={s.linkRow}
@@ -222,6 +230,15 @@ function makeStyles(theme) {
       color: theme.buttonPrimaryText,
       fontSize: 16,
       fontWeight: "600",
+    },
+    forgotRow: {
+      alignSelf: "center",
+      marginTop: 16,
+    },
+    forgotLink: {
+      color: theme.accent,
+      fontSize: 14,
+      fontWeight: "500",
     },
     linkRow: {
       flexDirection: "row",

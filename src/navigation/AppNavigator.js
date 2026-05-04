@@ -41,6 +41,8 @@ import GoalsScreen from "../screens/questionnaires/GoalsScreen";
 import StressScreen from "../screens/questionnaires/StressScreen";
 import SleepScreen from "../screens/questionnaires/SleepScreen";
 import ActivityScreen from "../screens/questionnaires/ActivityScreen";
+import ForgotPinScreen from "../screens/auth/ForgotPinScreen";
+import ResetPinScreen from "../screens/auth/ResetPinScreen";
 
 const ONBOARDED_KEY = "@coachly:onboarded";
 
@@ -66,6 +68,16 @@ function AuthStack() {
       <Stack.Screen name="PinSetup" component={PinSetupScreen} />
       <Stack.Screen name="PinConfirm" component={PinConfirmScreen} />
       <Stack.Screen name="Terms" component={TermsScreen} />
+      <Stack.Screen
+        name="ForgotPin"
+        component={ForgotPinScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ResetPin"
+        component={ResetPinScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
