@@ -8,7 +8,7 @@
         "projectId": "c3877710-f135-4fb0-aabc-51f44215ac7f"
       }
     },
-    "version": "1.0.5",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -28,7 +28,7 @@
     },
     "android": {
       "package": "com.qup.coachly",
-      "versionCode": 5,
+      "versionCode": 9,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/coachly-logo.png",
         "backgroundColor": "#ffffff"

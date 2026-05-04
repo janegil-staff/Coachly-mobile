@@ -21,7 +21,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
 
 const APP_VERSION = "1.0.0";
-const COMPANY = "KBB MEDIC AS";
+const COMPANY = "Qup DA";
 const EMAIL = "post@kbbmedic.no";
 
 export default function LoginScreen({ navigation }) {
