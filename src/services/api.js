@@ -4,7 +4,9 @@
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://goldfish-app-8zz97.ondigitalocean.app";
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ??
+  "https://goldfish-app-8zz97.ondigitalocean.app";
 
 const TOKEN_KEY = "accessToken";
 const REFRESH_KEY = "refreshToken";
@@ -95,7 +97,7 @@ export const authApi = {
     return u;
   },
 
-  login: async ({ email, password }) => {
+ login: async ({ email, password }) => {
     const data = await request("POST", "/api/auth/login", { email, password });
     await saveSession(data);
     const u = data?.user ?? (data?._id ? data : null);
@@ -103,6 +105,28 @@ export const authApi = {
       throw new Error("Login succeeded but no user returned");
     }
     return u;
+  },
+
+  forgotPin: async (email) => {
+    // Backend always returns 200 (anti-enumeration) — succeed quietly.
+    await request("POST", "/api/auth/forgot-password", { email });
+    return { ok: true };
+  },
+
+  resetPin: async (email, code, newPassword) => {
+    // Returns { user, accessToken, refreshToken } same as login.
+    // saveSession persists tokens for subsequent requests.
+    const data = await request("POST", "/api/auth/reset-password", {
+      email,
+      code,
+      newPassword,
+    });
+    await saveSession(data);
+    const u = data?.user ?? (data?._id ? data : null);
+    if (!u) {
+      throw new Error("Reset succeeded but no user returned");
+    }
+    return { ...data, user: u };
   },
 
   getMe: async () => {
