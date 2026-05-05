@@ -4,9 +4,7 @@
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ??
-  "https://goldfish-app-8zz97.ondigitalocean.app";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://goldfish-app-8zz97.ondigitalocean.app";
 
 const TOKEN_KEY = "accessToken";
 const REFRESH_KEY = "refreshToken";
@@ -63,7 +61,11 @@ export const authApi = {
     const data = await request("POST", "/api/auth/check-email", { email });
     return { exists: !!data?.exists };
   },
-
+  deleteAccount: async (pin) => {
+    const data = await request("DELETE", "/api/auth/me", { pin });
+    await clearSession();
+    return data;
+  },
   register: async ({
     email,
     password,
@@ -97,7 +99,7 @@ export const authApi = {
     return u;
   },
 
- login: async ({ email, password }) => {
+  login: async ({ email, password }) => {
     const data = await request("POST", "/api/auth/login", { email, password });
     await saveSession(data);
     const u = data?.user ?? (data?._id ? data : null);
@@ -168,11 +170,6 @@ export const authApi = {
     });
     await saveSession(data);
     return data;
-  },
-
-  deleteAccount: async () => {
-    await request("DELETE", "/api/auth/me");
-    await clearSession();
   },
 };
 

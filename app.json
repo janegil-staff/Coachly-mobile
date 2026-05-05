@@ -8,13 +8,13 @@
         "projectId": "c3877710-f135-4fb0-aabc-51f44215ac7f"
       }
     },
-    "version": "1.0.6",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/coachly-logo.png",
+      "image": "./assets/images/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -28,9 +28,9 @@
     },
     "android": {
       "package": "com.qup.coachly",
-      "versionCode": 9,
+      "versionCode": 12,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/coachly-logo.png",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true

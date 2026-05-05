@@ -43,7 +43,15 @@ function formatTime(date) {
 
 // ─────────────────────────────────────────────── ToggleRow
 
-function ToggleRow({ label, subtitle, value, onValueChange, theme, last, extra }) {
+function ToggleRow({
+  label,
+  subtitle,
+  value,
+  onValueChange,
+  theme,
+  last,
+  extra,
+}) {
   return (
     <View
       style={[
@@ -77,9 +85,13 @@ function ToggleRow({ label, subtitle, value, onValueChange, theme, last, extra }
 
 function ThemeRow({ mode, setMode, theme, t, last }) {
   const OPTIONS = [
-    { key: "light",  icon: "sunny-outline", label: t.themeLight  ?? "Light"  },
-    { key: "dark",   icon: "moon-outline",  label: t.themeDark   ?? "Dark"   },
-    { key: "system", icon: "phone-portrait-outline", label: t.themeSystem ?? "System" },
+    { key: "light", icon: "sunny-outline", label: t.themeLight ?? "Light" },
+    { key: "dark", icon: "moon-outline", label: t.themeDark ?? "Dark" },
+    {
+      key: "system",
+      icon: "phone-portrait-outline",
+      label: t.themeSystem ?? "System",
+    },
   ];
 
   return (
@@ -101,7 +113,12 @@ function ThemeRow({ mode, setMode, theme, t, last }) {
         </Text>
       </View>
 
-      <View style={[styles.segWrap, { backgroundColor: theme.bgSecondary ?? theme.border + "33" }]}>
+      <View
+        style={[
+          styles.segWrap,
+          { backgroundColor: theme.bgSecondary ?? theme.border + "33" },
+        ]}
+      >
         {OPTIONS.map((opt) => {
           const active = mode === opt.key;
           return (
@@ -189,7 +206,7 @@ export default function PersonalSettingsScreen({ navigation }) {
         t.error ?? "Error",
         e?.message === "Notification permission denied"
           ? (t.notifPermissionDenied ??
-            "Please enable notifications for Coachly in your device settings.")
+              "Please enable notifications for Coachly in your device settings.")
           : (e?.message ?? "Could not set reminder."),
       );
       setReminderEnabled(!val);
@@ -222,9 +239,22 @@ export default function PersonalSettingsScreen({ navigation }) {
 
   // ── render ────────────────────────────────────────────
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bgSecondary ?? theme.bg ?? "#F0F4F8" }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: theme.bgSecondary ?? theme.bg ?? "#F0F4F8",
+      }}
+    >
       {/* Blue header — extends under the system status bar */}
-      <View style={[styles.header, { backgroundColor: theme.accent, paddingTop: insets.top + Spacing.sm }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: theme.accent,
+            paddingTop: insets.top + Spacing.sm,
+          },
+        ]}
+      >
         <TouchableOpacity
           onPress={() => navigation?.goBack?.()}
           style={styles.headerBtn}
@@ -247,7 +277,12 @@ export default function PersonalSettingsScreen({ navigation }) {
           {(t.notifications ?? "Notifications").toUpperCase()}
         </Text>
 
-        <View style={[styles.section, { backgroundColor: theme.card ?? theme.bg ?? "#fff" }]}>
+        <View
+          style={[
+            styles.section,
+            { backgroundColor: theme.card ?? theme.bg ?? "#fff" },
+          ]}
+        >
           <ToggleRow
             theme={theme}
             label={t.notifications ?? "Notifications"}
@@ -287,14 +322,13 @@ export default function PersonalSettingsScreen({ navigation }) {
           {(t.appearance ?? t.theme ?? "Appearance").toUpperCase()}
         </Text>
 
-        <View style={[styles.section, { backgroundColor: theme.card ?? theme.bg ?? "#fff" }]}>
-          <ThemeRow
-            mode={mode}
-            setMode={setMode}
-            theme={theme}
-            t={t}
-            last
-          />
+        <View
+          style={[
+            styles.section,
+            { backgroundColor: theme.card ?? theme.bg ?? "#fff" },
+          ]}
+        >
+          <ThemeRow mode={mode} setMode={setMode} theme={theme} t={t} last />
         </View>
 
         {/* iOS shows the picker inline on demand; Android shows a system dialog */}
@@ -314,11 +348,42 @@ export default function PersonalSettingsScreen({ navigation }) {
             style={[styles.doneBtn, { backgroundColor: theme.accent }]}
             onPress={() => setShowTimePicker(false)}
           >
-            <Text style={styles.doneBtnText}>
-              {t.done ?? "Done"}
-            </Text>
+            <Text style={styles.doneBtnText}>{t.done ?? "Done"}</Text>
           </TouchableOpacity>
         ) : null}
+
+        <View style={{ marginTop: Spacing.lg }}>
+          <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>
+            {(t.account ?? "Account").toUpperCase()}
+          </Text>
+
+          <View
+            style={[
+              styles.section,
+              { backgroundColor: theme.card ?? theme.bg ?? "#fff" },
+            ]}
+          >
+            <TouchableOpacity
+              style={[styles.row, { borderBottomWidth: 0 }]}
+              onPress={() => navigation.navigate("DeleteAccount")}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.rowLabel, { color: "#d9534f" }]}>
+                  {t.deleteAccount ?? "Delete Account"}
+                </Text>
+                <Text
+                  style={[styles.rowSubtitle, { color: theme.textSecondary }]}
+                >
+                  {t.deleteAccountSubtitle ??
+                    "Permanently delete your account and all data"}
+                </Text>
+              </View>
+              <Text style={{ color: theme.textSecondary, fontSize: 18 }}>
+                {"\u203A"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
