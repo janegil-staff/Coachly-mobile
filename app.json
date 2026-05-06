@@ -8,7 +8,7 @@
         "projectId": "c3877710-f135-4fb0-aabc-51f44215ac7f"
       }
     },
-    "version": "1.0.7",
+    "version": "1.0.9",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -19,21 +19,21 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "icon": "./assets/icon.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.qupda.coachly",
-      "buildNumber": "1",
+      "buildNumber": "16",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.qup.coachly",
-      "versionCode": 12,
+      "versionCode": 16,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#1275ED"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.ico"

@@ -1,10 +1,11 @@
 // Calendar heatmap (GitHub contributions style).
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
 import Svg, { Rect } from "react-native-svg";
 
-const CELL = 12;
 const GAP = 3;
+const MIN_CELL = 6;
+const MAX_CELL = 14;
 
 /**
  * Map a 0-100 score to a colour band.
@@ -36,8 +37,16 @@ export default function HeatmapChart({ cells, weeks, theme }) {
     );
   }
 
-  const width = weeks * (CELL + GAP);
-  const height = 7 * (CELL + GAP);
+  // Compute cell size to fit the available width.
+  // Card padding is ~32px on each side (2 × Spacing.lg = 16px each),
+  // plus the screen's outer padding. ~64px total off the screen width.
+  const screenWidth = Dimensions.get("window").width;
+  const availableWidth = screenWidth - 64;
+  const computedCell = Math.floor((availableWidth - (weeks - 1) * GAP) / weeks);
+  const CELL = Math.max(MIN_CELL, Math.min(MAX_CELL, computedCell));
+
+  const width = weeks * CELL + (weeks - 1) * GAP;
+  const height = 7 * CELL + 6 * GAP;
 
   return (
     <View style={styles.wrap}>

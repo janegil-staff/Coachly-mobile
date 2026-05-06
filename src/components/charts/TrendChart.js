@@ -88,17 +88,27 @@ export default function TrendChart({
             </SvgText>
           ) : null
         ))}
-        {/* Series lines */}
+        {/* Series lines + dots */}
         {(series || []).map((s) => {
           const pts = (s.data || []).map((p) => xAt(p.x) + "," + yAt(p.y)).join(" ");
           return (
-            <Polyline
-              key={s.key}
-              points={pts}
-              stroke={s.color}
-              strokeWidth={2}
-              fill="none"
-            />
+            <React.Fragment key={s.key}>
+              <Polyline
+                points={pts}
+                stroke={s.color}
+                strokeWidth={2}
+                fill="none"
+              />
+              {(s.data || []).map((p, i) => (
+                <Circle
+                  key={s.key + "-pt-" + i}
+                  cx={xAt(p.x)}
+                  cy={yAt(p.y)}
+                  r={2.5}
+                  fill={s.color}
+                />
+              ))}
+            </React.Fragment>
           );
         })}
       </Svg>

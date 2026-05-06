@@ -38,6 +38,63 @@ function avg(nums) {
 }
 
 /**
+ * Total minutes for a single log. Prefer categoryDurations (authoritative
+ * post-schema-migration); fall back to workouts[].durationMinutes for any
+ * legacy logs that haven't been migrated.
+ */
+function logTotalMinutes(log) {
+  if (!log) return 0;
+  const cd = Array.isArray(log.categoryDurations) ? log.categoryDurations : [];
+  if (cd.length) {
+    return cd.reduce((s, c) => s + (Number(c?.durationMinutes) || 0), 0);
+  }
+  const ws = Array.isArray(log.workouts) ? log.workouts : [];
+  return ws.reduce((s, w) => s + (Number(w?.durationMinutes) || 0), 0);
+}
+
+/**
+ * Per-category minutes for a single log, returned as { type: minutes }.
+ * Same authoritative-first preference as logTotalMinutes.
+ *
+ * Workouts use `type` (not `category`) — important if falling back to legacy
+ * logs that only have `workouts[]` populated.
+ */
+function logCategoryMinutes(log) {
+  const out = {};
+  if (!log) return out;
+  const cd = Array.isArray(log.categoryDurations) ? log.categoryDurations : [];
+  if (cd.length) {
+    cd.forEach((c) => {
+      const k = (c.type || "other").toLowerCase();
+      out[k] = (out[k] || 0) + (Number(c?.durationMinutes) || 0);
+    });
+    return out;
+  }
+  const ws = Array.isArray(log.workouts) ? log.workouts : [];
+  ws.forEach((w) => {
+    const k = (w.type || w.category || "other").toLowerCase();
+    out[k] = (out[k] || 0) + (Number(w?.durationMinutes) || 0);
+  });
+  return out;
+}
+
+/**
+ * Number of logged sessions for a single log. Uses categoryDurations
+ * length if populated, falls back to workouts[].length.
+ *
+ * This matters for the "sessions" count in summary stats — a log with
+ * categoryDurations: [strength 30m, cardio 30m] should count as 2 sessions
+ * even if the workouts array is empty or only has 1 entry.
+ */
+function logSessionCount(log) {
+  if (!log) return 0;
+  const cd = Array.isArray(log.categoryDurations) ? log.categoryDurations : [];
+  if (cd.length) return cd.length;
+  const ws = Array.isArray(log.workouts) ? log.workouts : [];
+  return ws.length;
+}
+
+/**
  * Compute a 0-100 daily score from a log entry.
  * Wraps computeDailyScore() to normalise whatever scale it returns into 0-100
  * so the heatmap colour bands work consistently.
@@ -55,6 +112,26 @@ function scoreForLog(log) {
   // computeDailyScore returns 1-5 (matching the Rating scale).
   // Normalise to 0-100. If your score lib already returns 0-100, change to: return raw;
   return Math.round((raw / 5) * 100);
+}
+
+// Map a high-level chart key to the actual log field name.
+// Charts use friendly keys ("sleep", "weight"); logs use the real ones
+// ("sleepQuality", "weightKg"). Centralising the mapping here means we
+// can't accidentally read the wrong field from elsewhere.
+const FIELD_MAP = {
+  effort: "effort",
+  mood: "mood",
+  energy: "energy",
+  sleep: "sleepQuality",
+  soreness: "soreness",
+  weight: "weightKg",
+  sleepQuality: "sleepQuality",
+  weightKg: "weightKg",
+};
+
+function logField(log, key) {
+  const realKey = FIELD_MAP[key] ?? key;
+  return log?.[realKey];
 }
 
 // ── Public functions ──────────────────────────────────────────────────────
@@ -76,7 +153,7 @@ export function radarPoints(logs, days = 14) {
   const eff = avg(recent.map((l) => l.effort));
   const moo = avg(recent.map((l) => l.mood));
   const ene = avg(recent.map((l) => l.energy));
-  const slp = avg(recent.map((l) => l.sleep));
+  const slp = avg(recent.map((l) => l.sleepQuality));   // ← was l.sleep
   const sor = avg(recent.map((l) => l.soreness));
 
   return [
@@ -88,24 +165,30 @@ export function radarPoints(logs, days = 14) {
   ];
 }
 
-/**
- * Single-metric trend over time.
- * @param {string} key  one of: effort, mood, energy, sleep, soreness, weight
- */
 export function trendSeries(logs, key, days = 90) {
   const cutoff = Date.now() - days * MS_DAY;
   const out = [];
   const sorted = (logs || []).slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+
+  const SKIP_REST_FOR = new Set(["effort", "energy", "mood", "soreness"]);
+
   for (const l of sorted) {
     const t = new Date(l.date).getTime();
     if (!Number.isFinite(t) || t < cutoff) continue;
-    const v = l[key];
+    if (l.isRestDay && SKIP_REST_FOR.has(key)) continue;
+
+    const v = logField(l, key);
     if (typeof v !== "number") continue;
+
+    // TEMPORARY DEBUG
+    if (key === "energy" && v === 1) {
+      console.log("[trendSeries energy=1]", { date: l.date, isRestDay: l.isRestDay, log: l });
+    }
+
     out.push({ x: t, y: v, date: l.date });
   }
   return out;
 }
-
 /**
  * Calendar heatmap cells — last N weeks of daily intensity.
  *
@@ -163,6 +246,9 @@ export function heatmapCells(logs, scoresByDate, weeks = 26) {
 
 /**
  * Weekly total minutes (last N weeks). Bars.
+ * Reads from categoryDurations (authoritative post-migration), falls back
+ * to workouts[].durationMinutes for legacy logs.
+ *
  * @returns {{ weekStart: string, minutes: number, sessions: number }[]}
  */
 export function weeklyVolume(logs, weeks = 12) {
@@ -181,10 +267,11 @@ export function weeklyVolume(logs, weeks = 12) {
     const ws = startOfWeek(new Date(l.date));
     const key = dateKey(ws);
     if (!buckets.has(key)) continue;
-    const w = (l.workouts || []).reduce((a, b) => a + (Number(b?.durationMinutes) || 0), 0);
+    const minutes = logTotalMinutes(l);
+    const sessions = logSessionCount(l);
     const b = buckets.get(key);
-    b.minutes += w;
-    b.sessions += (l.workouts || []).length;
+    b.minutes += minutes;
+    b.sessions += sessions;
   }
 
   return Array.from(buckets.entries()).map(([weekStart, v]) => ({
@@ -196,6 +283,9 @@ export function weeklyVolume(logs, weeks = 12) {
 
 /**
  * Category breakdown (donut/pie) for the last N days.
+ * Reads from categoryDurations (authoritative post-migration), falls back
+ * to grouping workouts by type for legacy logs.
+ *
  * @returns {{ category: string, minutes: number, sessions: number, pct: number }[]}
  */
 export function categoryBreakdown(logs, days = 30) {
@@ -206,14 +296,14 @@ export function categoryBreakdown(logs, days = 30) {
     if (l.isRestDay) continue;
     const t = new Date(l.date).getTime();
     if (!Number.isFinite(t) || t < cutoff) continue;
-    for (const w of l.workouts || []) {
-      const cat = (w.category || "other").toLowerCase();
-      const minutes = Number(w?.durationMinutes) || 0;
+
+    const perCat = logCategoryMinutes(l);
+    Object.entries(perCat).forEach(([cat, mins]) => {
       const cur = totals.get(cat) || { minutes: 0, sessions: 0 };
-      cur.minutes += minutes;
+      cur.minutes += mins;
       cur.sessions += 1;
       totals.set(cat, cur);
-    }
+    });
   }
 
   const all = Array.from(totals.entries()).map(([category, v]) => ({
@@ -224,6 +314,7 @@ export function categoryBreakdown(logs, days = 30) {
   const totalMinutes = all.reduce((a, b) => a + b.minutes, 0);
   return all
     .map((x) => ({ ...x, pct: totalMinutes > 0 ? x.minutes / totalMinutes : 0 }))
+    .filter((x) => x.minutes > 0)
     .sort((a, b) => b.minutes - a.minutes);
 }
 
@@ -276,7 +367,7 @@ export function hooperTimeline(hoopers, weeks = 12) {
  * @returns {{ x: number, y: number, date: string }[]}
  */
 export function weightSeries(logs, days = 90) {
-  return trendSeries(logs, "weightKg", days);
+  return trendSeries(logs, "weight", days);
 }
 
 // ── Headline numbers (for stat cards above the charts) ────────────────────
@@ -284,18 +375,13 @@ export function weightSeries(logs, days = 90) {
 export function summaryNumbers(logs, days = 30) {
   const cutoff = Date.now() - days * MS_DAY;
   const recent = (logs || []).filter((l) => new Date(l.date).getTime() >= cutoff);
-  const sessions = recent.reduce(
-    (a, l) => a + ((l.workouts || []).length),
-    0
-  );
-  const minutes = recent.reduce(
-    (a, l) =>
-      a + (l.workouts || []).reduce((s, w) => s + (Number(w?.durationMinutes) || 0), 0),
-    0
-  );
+
+  const sessions = recent.reduce((a, l) => a + logSessionCount(l), 0);
+  const minutes = recent.reduce((a, l) => a + logTotalMinutes(l), 0);
   const restDays = recent.filter((l) => l.isRestDay).length;
   const avgEffort = avg(recent.map((l) => l.effort));
   const avgMood = avg(recent.map((l) => l.mood));
+
   return {
     sessions,
     minutes,
