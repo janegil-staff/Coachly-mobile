@@ -11,6 +11,8 @@ import {
   Alert,
   ActivityIndicator,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -22,10 +24,10 @@ import { FontSize, Spacing } from "../../constants/theme";
 
 const CATEGORIES = [
   { key: "strength", labelKey: "categoryStrength" },
-  { key: "cardio",   labelKey: "categoryCardio" },
+  { key: "cardio", labelKey: "categoryCardio" },
   { key: "mobility", labelKey: "categoryMobility" },
   { key: "recovery", labelKey: "categoryRecovery" },
-  { key: "other",    labelKey: "categoryOther" },
+  { key: "other", labelKey: "categoryOther" },
 ];
 
 export default function WorkoutsScreen() {
@@ -93,25 +95,28 @@ export default function WorkoutsScreen() {
   const groupedBrowse = useMemo(() => {
     const map = {};
     for (const e of browseList) (map[e.category] ||= []).push(e);
-    return CATEGORIES.filter((c) => map[c.key]?.length).map(
-      (c) => ({ ...c, items: map[c.key] })
-    );
+    return CATEGORIES.filter((c) => map[c.key]?.length).map((c) => ({
+      ...c,
+      items: map[c.key],
+    }));
   }, [browseList]);
 
   const handleToggle = async (item) => {
     if (item.isCustom) return;
     const wasSelected = selectedSlugs.includes(item.slug);
     setSelectedSlugs((prev) =>
-      wasSelected ? prev.filter((s) => s !== item.slug) : [...prev, item.slug]
+      wasSelected ? prev.filter((s) => s !== item.slug) : [...prev, item.slug],
     );
     try {
       const { selectedSlugs: serverSlugs } = await exercisesApi.toggleSelection(
-        item.slug
+        item.slug,
       );
       setSelectedSlugs(serverSlugs);
     } catch (err) {
       setSelectedSlugs((prev) =>
-        wasSelected ? [...prev, item.slug] : prev.filter((s) => s !== item.slug)
+        wasSelected
+          ? [...prev, item.slug]
+          : prev.filter((s) => s !== item.slug),
       );
       console.warn("Toggle failed:", err?.message);
     }
@@ -125,7 +130,7 @@ export default function WorkoutsScreen() {
     } catch (err) {
       Alert.alert(
         t.error ?? "Error",
-        err?.message ?? t.exerciseCreateFailed ?? "Could not add exercise."
+        err?.message ?? t.exerciseCreateFailed ?? "Could not add exercise.",
       );
     }
   };
@@ -144,14 +149,14 @@ export default function WorkoutsScreen() {
             try {
               await exercisesApi.deleteCustom(item._id);
               setCustomExercises((prev) =>
-                prev.filter((e) => e._id !== item._id)
+                prev.filter((e) => e._id !== item._id),
               );
             } catch (err) {
               console.warn("Delete failed:", err?.message);
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -347,7 +352,11 @@ function AddCustomModal({ visible, onClose, onSave, styles, theme, t }) {
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.modalBackdrop}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.modalBackdrop}
+      >
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
         <View style={styles.modalCard}>
           <Text style={styles.modalTitle}>
             {t.addCustomExercise ?? "Add custom exercise"}
@@ -399,7 +408,7 @@ function AddCustomModal({ visible, onClose, onSave, styles, theme, t }) {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -526,7 +535,6 @@ const getStyles = (theme, insets) =>
       elevation: 4,
     },
     fabText: { color: "#fff", fontSize: 14, fontWeight: "700" },
-
     modalBackdrop: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.5)",

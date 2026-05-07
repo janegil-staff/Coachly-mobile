@@ -11,6 +11,8 @@ import {
   Alert,
   ActivityIndicator,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 import { useLang } from "../../context/LangContext";
@@ -22,12 +24,12 @@ import {
 } from "../../api/exercises";
 
 const CATEGORIES = [
-  { key: "all",      labelKey: "categoryAll" },
+  { key: "all", labelKey: "categoryAll" },
   { key: "strength", labelKey: "categoryStrength" },
-  { key: "cardio",   labelKey: "categoryCardio" },
+  { key: "cardio", labelKey: "categoryCardio" },
   { key: "mobility", labelKey: "categoryMobility" },
   { key: "recovery", labelKey: "categoryRecovery" },
-  { key: "other",    labelKey: "categoryOther" },
+  { key: "other", labelKey: "categoryOther" },
 ];
 
 export default function WorkoutsScreen() {
@@ -65,7 +67,7 @@ export default function WorkoutsScreen() {
       ...catalog,
       ...customExercises.map((e) => ({ ...e, isCustom: true })),
     ],
-    [catalog, customExercises]
+    [catalog, customExercises],
   );
 
   const filtered = useMemo(() => {
@@ -86,7 +88,7 @@ export default function WorkoutsScreen() {
     const map = {};
     for (const e of filtered) (map[e.category] ||= []).push(e);
     return CATEGORIES.filter((c) => c.key !== "all" && map[c.key]?.length).map(
-      (c) => ({ ...c, items: map[c.key] })
+      (c) => ({ ...c, items: map[c.key] }),
     );
   }, [filtered, activeCategory]);
 
@@ -98,7 +100,9 @@ export default function WorkoutsScreen() {
     } catch (err) {
       Alert.alert(
         t.error ?? "Error",
-        err?.response?.data?.error ?? t.exerciseCreateFailed ?? "Could not add exercise."
+        err?.response?.data?.error ??
+          t.exerciseCreateFailed ??
+          "Could not add exercise.",
       );
     }
   };
@@ -116,13 +120,18 @@ export default function WorkoutsScreen() {
           onPress: async () => {
             try {
               await deleteCustomExercise(item._id);
-              setCustomExercises((prev) => prev.filter((e) => e._id !== item._id));
+              setCustomExercises((prev) =>
+                prev.filter((e) => e._id !== item._id),
+              );
             } catch {
-              Alert.alert(t.error ?? "Error", t.exerciseDeleteFailed ?? "Could not delete.");
+              Alert.alert(
+                t.error ?? "Error",
+                t.exerciseDeleteFailed ?? "Could not delete.",
+              );
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -211,7 +220,12 @@ export default function WorkoutsScreen() {
           data={filtered}
           keyExtractor={(e) => e._id}
           renderItem={({ item }) => (
-            <ExerciseRow ex={item} styles={styles} t={t} onDelete={handleDelete} />
+            <ExerciseRow
+              ex={item}
+              styles={styles}
+              t={t}
+              onDelete={handleDelete}
+            />
           )}
           ListEmptyComponent={
             <Text style={styles.emptyText}>
@@ -278,8 +292,17 @@ function AddCustomModal({ visible, onClose, onSave, styles, colors, t }) {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.modalBackdrop}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.modalBackdrop}
+      >
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
         <View style={styles.modalCard}>
           <Text style={styles.modalTitle}>
             {t.addCustomExercise ?? "Add custom exercise"}
@@ -331,7 +354,7 @@ function AddCustomModal({ visible, onClose, onSave, styles, colors, t }) {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -352,7 +375,12 @@ const getStyles = (colors) =>
       borderWidth: 1,
       borderColor: colors.border,
     },
-    searchInput: { flex: 1, paddingVertical: 12, fontSize: 14, color: colors.text },
+    searchInput: {
+      flex: 1,
+      paddingVertical: 12,
+      fontSize: 14,
+      color: colors.text,
+    },
     clearBtn: { color: colors.muted, fontSize: 16, paddingHorizontal: 6 },
 
     chipsRow: { paddingHorizontal: 16, paddingBottom: 8, gap: 8 },
@@ -391,10 +419,20 @@ const getStyles = (colors) =>
       borderColor: colors.border,
     },
     rowName: { fontSize: 14, color: colors.text, fontWeight: "500" },
-    rowBadge: { fontSize: 10, color: colors.muted, fontStyle: "italic", marginTop: 2 },
+    rowBadge: {
+      fontSize: 10,
+      color: colors.muted,
+      fontStyle: "italic",
+      marginTop: 2,
+    },
     rowDelete: { fontSize: 18, color: colors.muted, paddingHorizontal: 6 },
 
-    emptyText: { textAlign: "center", color: colors.muted, fontSize: 13, marginTop: 32 },
+    emptyText: {
+      textAlign: "center",
+      color: colors.muted,
+      fontSize: 13,
+      marginTop: 32,
+    },
 
     fab: {
       position: "absolute",
@@ -425,7 +463,12 @@ const getStyles = (colors) =>
       padding: 20,
       paddingBottom: 36,
     },
-    modalTitle: { fontSize: 18, fontWeight: "700", color: colors.text, marginBottom: 16 },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+      marginBottom: 16,
+    },
     modalLabel: {
       fontSize: 12,
       fontWeight: "600",
@@ -456,7 +499,10 @@ const getStyles = (colors) =>
       marginRight: 8,
       marginBottom: 8,
     },
-    modalChipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+    modalChipActive: {
+      backgroundColor: colors.accent,
+      borderColor: colors.accent,
+    },
     modalChipText: { fontSize: 12, color: colors.text, fontWeight: "600" },
     modalChipTextActive: { color: "#fff" },
     modalActions: { flexDirection: "row", gap: 10, marginTop: 20 },
