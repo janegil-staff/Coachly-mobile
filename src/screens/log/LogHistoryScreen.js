@@ -1,15 +1,5 @@
-// src/screens/log/LogHistoryScreen.js
-// Coachly fitness diary — Calendar + Diary tabs with score-colored cells.
-// Theme-aware: uses theme.surface / theme.surfaceAlt / theme.text / theme.textMuted
-// throughout instead of hardcoded white/grey/navy.
-//
-// Fix vs previous version:
-//   - Calendar grid no longer uses `width: '14.28%'` + flexWrap, which on Android
-//     rounded each cell down and caused the 7th column (Sunday) to wrap onto its
-//     own row. The grid now renders one explicit <View> per week, with 7 children
-//     each using `flex: 1`. Math is integer-clean on every device, weekday header
-//     and body always align.
-
+import DayActionModal from "../../components/calendar/DayActionModal";
+import DayPreviewModal from "../../components/calendar/DayPreviewModal";
 import React, { useState, useCallback } from "react";
 import {
   View,
@@ -140,7 +130,29 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
   const PRIMARY = theme.accent;
   const HEADING = theme.text;
   const MUTED = theme.textMuted;
+  const [actionDate, setActionDate] = useState(null);
+  const [previewDate, setPreviewDate] = useState(null);
 
+  const closeAll = () => {
+    setActionDate(null);
+    setPreviewDate(null);
+  };
+
+  const handleEdit = (dateStr) => {
+    closeAll();
+    navigation.navigate("Log", { date: dateStr });
+  };
+
+  const handlePreview = (dateStr) => {
+    setActionDate(null);
+    setPreviewDate(dateStr);
+  };
+
+  // Find the log + score for the currently-previewed date
+  const previewLog = previewDate
+    ? (logs.find((l) => l.date === previewDate) ?? null)
+    : null;
+  const previewScore = previewDate ? (scoresByDate[previewDate] ?? null) : null;
   const goBack = () => {
     if (month === 0) {
       setYear((y) => y - 1);
@@ -187,16 +199,33 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
   const today = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
 
   const months = t.monthsShort ?? [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
   const weekdays = t.weekdaysShort ?? [
-    "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun",
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun",
   ];
 
   const countByScore = [1, 2, 3, 4, 5].map((s) => ({
     score: s,
-    count: monthLogs.filter((l) => bucketScore(scoresByDate[l.date]) === s).length,
+    count: monthLogs.filter((l) => bucketScore(scoresByDate[l.date]) === s)
+      .length,
     label: scoreLabel(s, t),
     color: scoreColor(s),
   }));
@@ -220,7 +249,9 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
           style={[cal.navBtn, isCurrentMonth && { opacity: 0.3 }]}
           disabled={isCurrentMonth}
         >
-          <Text style={[cal.navArrow, { color: isCurrentMonth ? MUTED : HEADING }]}>
+          <Text
+            style={[cal.navArrow, { color: isCurrentMonth ? MUTED : HEADING }]}
+          >
             ›
           </Text>
         </TouchableOpacity>
@@ -261,9 +292,15 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
                       key={dateStr}
                       style={cal.cell}
                       activeOpacity={isFuture ? 1 : 0.7}
-                      onPress={() =>
-                        !isFuture && navigation.navigate("Log", { date: dateStr })
-                      }
+                      onPress={() => {
+                        if (isFuture) return;
+                        // If the day has data, show action modal. Empty days go straight to edit.
+                        if (log) {
+                          setActionDate(dateStr);
+                        } else {
+                          navigation.navigate("Log", { date: dateStr });
+                        }
+                      }}
                     >
                       <View
                         style={[
@@ -297,7 +334,9 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
                           {day}
                         </Text>
                         {isRest && (
-                          <View style={[cal.restIcon, { backgroundColor: PRIMARY }]}>
+                          <View
+                            style={[cal.restIcon, { backgroundColor: PRIMARY }]}
+                          >
                             <Ionicons name="bed" size={12} color="#fff" />
                           </View>
                         )}
@@ -308,7 +347,9 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
                         )}
                         {highSoreness && <Text style={cal.soreIcon}>🔥</Text>}
                         {hasNote && (
-                          <View style={[cal.noteIcon, { backgroundColor: PRIMARY }]}>
+                          <View
+                            style={[cal.noteIcon, { backgroundColor: PRIMARY }]}
+                          >
                             <Ionicons
                               name="chatbubble-ellipses"
                               size={10}
@@ -324,10 +365,29 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
             ))}
           </View>
         )}
+
+        <DayActionModal
+          visible={actionDate != null}
+          date={actionDate}
+          onEdit={() => handleEdit(actionDate)}
+          onPreview={() => handlePreview(actionDate)}
+          onCancel={closeAll}
+        />
+
+        <DayPreviewModal
+          visible={previewDate != null}
+          date={previewDate}
+          log={previewLog}
+          score={previewScore}
+          onEdit={() => handleEdit(previewDate)}
+          onClose={closeAll}
+        />
       </View>
 
       {/* Legend */}
-      <View style={[cal.card, { backgroundColor: cardBg, paddingVertical: 10 }]}>
+      <View
+        style={[cal.card, { backgroundColor: cardBg, paddingVertical: 10 }]}
+      >
         <View style={cal.legendRow}>
           {[1, 2, 3, 4, 5].map((s) => (
             <View key={s} style={cal.legendItem}>
@@ -390,7 +450,9 @@ function CalendarTab({ logs, scoresByDate, loading, navigation, t, theme }) {
         {countByScore.map(({ score, count, label, color }) => (
           <View key={score} style={cal.breakdownRow}>
             <View style={[cal.breakdownDot, { backgroundColor: color }]} />
-            <Text style={[cal.breakdownLabel, { color: HEADING }]}>{label}</Text>
+            <Text style={[cal.breakdownLabel, { color: HEADING }]}>
+              {label}
+            </Text>
             <View style={[cal.breakdownBarBg, { backgroundColor: cardBarBg }]}>
               <View
                 style={[
@@ -548,8 +610,18 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
   const cardBg = theme.surface ?? "#fff";
 
   const months = t.months ?? [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   const [collapsed, setCollapsed] = useState({});
   const toggle = (key) => setCollapsed((p) => ({ ...p, [key]: !p[key] }));
@@ -601,7 +673,9 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
       }
       renderItem={({ item }) => {
         const pillBg =
-          item.avg != null ? scoreColor(item.avg) + "33" : (theme.surfaceAlt ?? "#e8eef5");
+          item.avg != null
+            ? scoreColor(item.avg) + "33"
+            : (theme.surfaceAlt ?? "#e8eef5");
         const pillText = item.avg != null ? scoreColor(item.avg) : HEADING;
         const isOpen = collapsed[item.key] !== false;
         return (
@@ -658,7 +732,12 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
                         {new Date(log.date).getDate()}
                       </Text>
                       {log.isRestDay && (
-                        <View style={[diary.dayBadgeIcon, { backgroundColor: theme.accent }]}>
+                        <View
+                          style={[
+                            diary.dayBadgeIcon,
+                            { backgroundColor: theme.accent },
+                          ]}
+                        >
                           <Ionicons name="bed" size={10} color="#fff" />
                         </View>
                       )}
@@ -673,13 +752,17 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
                           {t.restDay ?? "Rest day"}
                         </Text>
                       ) : rows.length === 0 ? (
-                        <Text style={[diary.rowPrimary, { color: HEADING }]}>—</Text>
+                        <Text style={[diary.rowPrimary, { color: HEADING }]}>
+                          —
+                        </Text>
                       ) : (
                         <>
                           {rows.map((r) => (
                             <View key={r.category} style={diary.workoutBlock}>
                               <View style={diary.workoutHeader}>
-                                <Text style={[diary.workoutCat, { color: HEADING }]}>
+                                <Text
+                                  style={[diary.workoutCat, { color: HEADING }]}
+                                >
                                   {categoryLabel(r.category, t)}
                                 </Text>
                                 <Text
@@ -697,7 +780,10 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
                                   {r.exercises.map((name, idx) => (
                                     <Text
                                       key={idx}
-                                      style={[diary.exerciseItem, { color: MUTED }]}
+                                      style={[
+                                        diary.exerciseItem,
+                                        { color: MUTED },
+                                      ]}
                                       numberOfLines={1}
                                     >
                                       • {name}
@@ -723,24 +809,47 @@ function DiaryTab({ logs, scoresByDate, navigation, t, theme }) {
 
                       <View style={diary.statsRow}>
                         {log.effort != null && (
-                          <Stat label={t.effort ?? "Effort"} value={log.effort} color={theme.text} />
+                          <Stat
+                            label={t.effort ?? "Effort"}
+                            value={log.effort}
+                            color={theme.text}
+                          />
                         )}
                         {log.mood != null && (
-                          <Stat label={t.mood ?? "Mood"} value={log.mood} color={theme.text} />
+                          <Stat
+                            label={t.mood ?? "Mood"}
+                            value={log.mood}
+                            color={theme.text}
+                          />
                         )}
                         {log.energy != null && (
-                          <Stat label={t.energy ?? "Energy"} value={log.energy} color={theme.text} />
+                          <Stat
+                            label={t.energy ?? "Energy"}
+                            value={log.energy}
+                            color={theme.text}
+                          />
                         )}
                         {log.sleepQuality != null && (
-                          <Stat label={t.sleep ?? "Sleep"} value={log.sleepQuality} color={theme.text} />
+                          <Stat
+                            label={t.sleep ?? "Sleep"}
+                            value={log.sleepQuality}
+                            color={theme.text}
+                          />
                         )}
                         {log.soreness != null && (
-                          <Stat label={t.soreness ?? "Sore"} value={log.soreness} color={theme.text} />
+                          <Stat
+                            label={t.soreness ?? "Sore"}
+                            value={log.soreness}
+                            color={theme.text}
+                          />
                         )}
                       </View>
                       {!!log.note?.trim() && (
                         <Text
-                          style={[diary.note, { color: theme.textSecondary ?? "#444" }]}
+                          style={[
+                            diary.note,
+                            { color: theme.textSecondary ?? "#444" },
+                          ]}
                           numberOfLines={2}
                         >
                           {log.note}
@@ -896,7 +1005,12 @@ export default function LogHistoryScreen({ navigation, route }) {
   const loading = logsLoading || scoresLoading;
 
   return (
-    <View style={[s.root, { backgroundColor: theme.surfaceAlt ?? theme.bg ?? "#F0F4F8" }]}>
+    <View
+      style={[
+        s.root,
+        { backgroundColor: theme.surfaceAlt ?? theme.bg ?? "#F0F4F8" },
+      ]}
+    >
       <View
         style={[
           s.header,
@@ -910,7 +1024,15 @@ export default function LogHistoryScreen({ navigation, route }) {
         <View style={{ width: 40 }} />
       </View>
 
-      <View style={[s.tabBar, { backgroundColor: theme.surface ?? "#fff", borderBottomColor: theme.border ?? "#e8eef5" }]}>
+      <View
+        style={[
+          s.tabBar,
+          {
+            backgroundColor: theme.surface ?? "#fff",
+            borderBottomColor: theme.border ?? "#e8eef5",
+          },
+        ]}
+      >
         {["calendar", "diary"].map((tab) => {
           const isActive = activeTab === tab;
           const label =
@@ -922,7 +1044,10 @@ export default function LogHistoryScreen({ navigation, route }) {
               key={tab}
               style={[
                 s.tab,
-                { backgroundColor: theme.surface ?? "#fff", borderColor: theme.border ?? "#dde5ee" },
+                {
+                  backgroundColor: theme.surface ?? "#fff",
+                  borderColor: theme.border ?? "#dde5ee",
+                },
                 isActive && {
                   borderColor: PRIMARY,
                   overflow: "hidden",
@@ -937,7 +1062,11 @@ export default function LogHistoryScreen({ navigation, route }) {
                   <Text style={s.tabTextActive}>{label}</Text>
                 </View>
               ) : (
-                <Text style={[s.tabText, { color: theme.textMuted ?? "#8fa8c8" }]}>{label}</Text>
+                <Text
+                  style={[s.tabText, { color: theme.textMuted ?? "#8fa8c8" }]}
+                >
+                  {label}
+                </Text>
               )}
             </TouchableOpacity>
           );

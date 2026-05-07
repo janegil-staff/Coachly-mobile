@@ -1,7 +1,13 @@
 // src/context/AuthContext.js
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import * as SecureStore from "expo-secure-store";
-import { authApi } from "../services/api";
+import { authApi, setOnSessionExpired } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -14,6 +20,29 @@ export function AuthProvider({ children }) {
   // Tracks whether the user manually authed (login/register) before the
   // initial getMe() resolves, so we don't clobber a fresh user with null.
   const authedManually = useRef(false);
+
+  // Register the session-expired callback on mount.
+  // The api layer calls this when the refresh token has expired and
+  // a refresh attempt fails — i.e. the session is genuinely over and
+  // we need to bounce the user back to the login screen.
+  useEffect(() => {
+    setOnSessionExpired(() => {
+      console.log("[auth] session expired — clearing state");
+      authedManually.current = false;
+      setPinVerified(false);
+      setIsNewUser(false);
+      setUser(null);
+      // Note: we deliberately do NOT clear userPin/userEmail from
+      // SecureStore here. That way when the user lands on the login
+      // screen, their email is still remembered and they only need
+      // to re-enter their PIN.
+    });
+
+    // Cleanup: clear the callback if AuthProvider unmounts (won't
+    // typically happen in production, but matters for hot-reload
+    // during development).
+    return () => setOnSessionExpired(null);
+  }, []);
 
   useEffect(() => {
     authApi

@@ -1,10 +1,13 @@
 // src/services/api.js
 // Coachly backend client — no success-wrapper.
+// Auto-refreshes expired access tokens transparently.
 
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://goldfish-app-8zz97.ondigitalocean.app";
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ??
+  "https://goldfish-app-8zz97.ondigitalocean.app";
 
 const TOKEN_KEY = "accessToken";
 const REFRESH_KEY = "refreshToken";
@@ -14,8 +17,74 @@ async function getToken() {
   return SecureStore.getItemAsync(TOKEN_KEY);
 }
 
-async function request(method, path, body) {
-  console.log("[api] →", method, path);
+async function getRefreshToken() {
+  return SecureStore.getItemAsync(REFRESH_KEY);
+}
+
+// ── Refresh coordination ──────────────────────────────────────────────
+// If multiple requests fire at once and all hit 401, we want exactly ONE
+// refresh round-trip — not N parallel ones that race and overwrite each
+// other in SecureStore. inFlightRefresh is a shared promise; concurrent
+// callers await the same one.
+let inFlightRefresh = null;
+
+// One-shot listener for "refresh failed, please sign out". The auth
+// context registers a callback here and gets invoked when the refresh
+// token has expired (genuine session end).
+let onSessionExpired = null;
+export function setOnSessionExpired(fn) {
+  onSessionExpired = fn;
+}
+
+async function refreshAccessToken() {
+  if (inFlightRefresh) return inFlightRefresh;
+
+  inFlightRefresh = (async () => {
+    const refreshToken = await getRefreshToken();
+    if (!refreshToken) {
+      throw new Error("No refresh token");
+    }
+
+    const res = await fetch(`${BASE_URL}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!res.ok) {
+      // Refresh token expired or invalid — genuine session end.
+      // Clear local state and notify the auth context.
+      await clearSession();
+      if (onSessionExpired) {
+        try {
+          onSessionExpired();
+        } catch (e) {
+          console.warn("[api] onSessionExpired handler threw:", e);
+        }
+      }
+      throw new Error("Refresh failed");
+    }
+
+    const data = await res.json();
+    if (data?.accessToken) {
+      await SecureStore.setItemAsync(TOKEN_KEY, data.accessToken);
+    }
+    if (data?.refreshToken) {
+      await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken);
+    }
+    return data;
+  })();
+
+  try {
+    return await inFlightRefresh;
+  } finally {
+    inFlightRefresh = null;
+  }
+}
+
+// Internal: a single network round-trip with the current access token.
+// Does NOT handle 401 — the public `request()` wrapper does that.
+async function rawRequest(method, path, body) {
   const token = await getToken();
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
@@ -30,6 +99,40 @@ async function request(method, path, body) {
   try {
     json = await res.json();
   } catch {}
+
+  return { res, json };
+}
+
+async function request(method, path, body) {
+  console.log("[api] →", method, path);
+
+  // Don't try to refresh on the refresh endpoint itself, or on auth
+  // endpoints that don't require a token. Those should fail outright
+  // if they fail.
+  const isAuthEndpoint =
+    path.startsWith("/api/auth/login") ||
+    path.startsWith("/api/auth/signup") ||
+    path.startsWith("/api/auth/refresh") ||
+    path.startsWith("/api/auth/forgot-password") ||
+    path.startsWith("/api/auth/reset-password") ||
+    path.startsWith("/api/auth/check-email");
+
+  let { res, json } = await rawRequest(method, path, body);
+
+  // If the access token expired, try to refresh once and retry.
+  if (res.status === 401 && !isAuthEndpoint) {
+    console.log("[api] 401 — attempting token refresh for", path);
+    try {
+      await refreshAccessToken();
+      console.log("[api] refresh OK — retrying", path);
+      const retry = await rawRequest(method, path, body);
+      res = retry.res;
+      json = retry.json;
+    } catch (refreshErr) {
+      console.warn("[api] refresh failed:", refreshErr?.message);
+      // Fall through — the original 401 will propagate as the error below.
+    }
+  }
 
   if (!res.ok) {
     const message = json?.error ?? `Request failed (${res.status})`;
